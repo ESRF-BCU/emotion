@@ -1,5 +1,5 @@
 from emotion import Controller
-from emotion.motor import READY, MOVING
+from emotion.axis import READY, MOVING
 from emotion import task, error_cleanup, cleanup
 import random
 import math
