@@ -1,6 +1,5 @@
 import sys
 import os
-from ..controller import Controller
 from ..axis import Axis, Group
 
 BACKEND = 'xml'
@@ -124,3 +123,4 @@ def load_cfg_fromstring(config_str):
   if BACKEND == 'xml':
     from .xml_backend import load_cfg_fromstring
     return load_cfg_fromstring(config_str)
+
