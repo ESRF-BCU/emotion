@@ -5,7 +5,7 @@ from .task_utils import task
 from .settings import AxisSettings
 from .axis import MOVING, READY
 
-class Controller:
+class Controller(object):
   def __init__(self, name, config, axes):
     self.__name = name
     self.__config = config
