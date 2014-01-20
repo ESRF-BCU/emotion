@@ -20,7 +20,9 @@ import emotion
 user_ns = { "load_cfg": emotion.load_cfg,
             "load_cfg_fromstring": emotion.load_cfg_fromstring,
             "get_axis": emotion.get_axis,
-            "get_group": emotion.get_group }
+            "get_group": emotion.get_group,
+            "sys": sys,
+            "os": os }
  
 #user_ns.update(objects)
 
