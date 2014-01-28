@@ -3,6 +3,7 @@
 import emotion
 import emotion.axis
 import PyTango
+import traceback
 import TgGevent
 import sys
 ## Device States Description
@@ -27,9 +28,12 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.debug_stream("In init_device()")
         self.get_device_properties(self.get_device_class())
 
-        emotion.load_cfg(self.config_file)
-        self.axis = TgGevent.wrap(emotion.get_axis(self.axis_name))
-
+        try:
+            emotion.load_cfg(self.config_file)
+            self.axis = TgGevent.wrap(emotion.get_axis(self.axis_name))
+        except:
+            self.set_status(traceback.format_exc())
+         
         """
         self.attr_Steps_per_unit_read = 0.0
         self.attr_Steps_read = 0
@@ -46,17 +50,48 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_StepSize_read = 0.0
         """
 
-    def always_executed_hook(self):
-        self.debug_stream("In always_executed_hook()")
-        self.update_state()
+    def dev_state(self):
+        """ This command gets the device state (stored in its device_state data member) and returns it to the caller.
+        
+        :param : none
+        :type: PyTango.DevVoid
+        :return: Device state
+        :rtype: PyTango.CmdArgType.DevState """
+        self.debug_stream("In dev_state()")
+        argout = PyTango.DevState.UNKNOWN
+        #----- PROTECTED REGION ID(TOTO.State) ENABLED START -----#
 
-    def update_state(self):
-        if self.axis.state() == emotion.axis.READY:
-          self.set_state(PyTango.DevState.ON)
-        elif self.axis.state() == emotion.axis.MOVING:
-          self.set_state(PyTango.DevState.MOVING)
-        else:
+        try:
+          if self.axis.state() == emotion.axis.READY:
+            self.set_state(PyTango.DevState.ON)
+          elif self.axis.state() == emotion.axis.MOVING:
+            self.set_state(PyTango.DevState.MOVING)
+          else:
+            self.set_state(PyTango.DevState.FAULT)
+        except:
           self.set_state(PyTango.DevState.FAULT)
+
+        #----- PROTECTED REGION END -----#      //      TOTO.State
+        if argout != PyTango.DevState.ALARM:
+            PyTango.Device_4Impl.dev_state(self)
+        return self.get_state()
+
+
+    def dev_status(self):
+        """ This command gets the device status (stored in its device_status data member) and returns it to the caller.
+        
+        :param : none
+        :type: PyTango.DevVoid
+        :return: Device status
+        :rtype: PyTango.ConstDevString """
+        self.debug_stream("In dev_status()")
+        argout = ''
+        #----- PROTECTED REGION ID(TOTO.Status) ENABLED START -----#
+
+        #----- PROTECTED REGION END -----#      //      TOTO.Status
+        self.set_status(self.argout)
+        self.__status = PyTango.Device_4Impl.dev_status(self)
+        return self.__status
 
     def read_Steps_per_unit(self, attr):
         self.debug_stream("In read_Steps_per_unit()")
