@@ -30,7 +30,7 @@ class EmotionAxis(PyTango.Device_4Impl):
 
         try:
             emotion.load_cfg(self.config_file)
-            self.axis = TgGevent.wrap(emotion.get_axis(self.axis_name))
+            self.axis = TgGevent.get_proxy(emotion.get_axis, self.axis_name)
         except:
             self.set_status(traceback.format_exc())
          
@@ -76,23 +76,7 @@ class EmotionAxis(PyTango.Device_4Impl):
             PyTango.Device_4Impl.dev_state(self)
         return self.get_state()
 
-
-    def dev_status(self):
-        """ This command gets the device status (stored in its device_status data member) and returns it to the caller.
-        
-        :param : none
-        :type: PyTango.DevVoid
-        :return: Device status
-        :rtype: PyTango.ConstDevString """
-        self.debug_stream("In dev_status()")
-        argout = ''
-        #----- PROTECTED REGION ID(TOTO.Status) ENABLED START -----#
-
-        #----- PROTECTED REGION END -----#      //      TOTO.Status
-        self.set_status(self.argout)
-        self.__status = PyTango.Device_4Impl.dev_status(self)
-        return self.__status
-
+    
     def read_Steps_per_unit(self, attr):
         self.debug_stream("In read_Steps_per_unit()")
         attr.set_value(self.attr_Steps_per_unit_read)
