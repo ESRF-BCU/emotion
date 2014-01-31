@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 os.environ["TANGO_HOST"]="lid231:20000"
 
-sys.argv[0]="EmotionAxis"
-execfile("EmotionAxis.py")
+sys.argv[0]="Emotion"
+execfile("Emotion.py")
 
 
