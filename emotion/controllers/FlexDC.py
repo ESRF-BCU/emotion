@@ -1,6 +1,8 @@
 from emotion import Controller
+from emotion.controller import add_method
 from emotion.axis import READY, MOVING
 from emotion import task, error_cleanup, cleanup
+import functools
 import random
 import math
 import time
@@ -29,6 +31,8 @@ class FlexDC(Controller):
   # Init of each axis.
   def initialize_axis(self, axis):
     axis.channel = axis.config.get("channel")
+
+    add_method(axis, "get_id", functools.partial(self._get_id, axis.channel))
 
     # Sets "point to point" motion mode.
     # 0 -> point to point
