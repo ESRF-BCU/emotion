@@ -5,7 +5,7 @@ import functools
 from .config.static import StaticConfig
 from .task_utils import task
 from .settings import AxisSettings
-from .axis import MOVING, READY
+from .axis import MOVING, READY, UNKNOWN
 
 
 def add_axis_method(axis_object, method, name=None, args=[]):
@@ -77,6 +77,9 @@ class Controller(object):
     raise NotImplementedError
 
   def velocity(self, axis, new_velocity=None):
+    raise NotImplementedError
+
+  def acctime(self, axis, new_acctime=None):
     raise NotImplementedError
 
   def read_state(self, axis):
