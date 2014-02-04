@@ -5,9 +5,10 @@ import functools
 from .config.static import StaticConfig
 from .task_utils import task
 from .settings import AxisSettings
-from .axis import MOVING, READY, FAULT
-from . import event
+from .axis import MOVING, READY, FAULT, UNKNOWN
 from .config import get_axis
+from . import event
+
 
 def add_axis_method(axis_object, method, name=None, args=[]):
      if name is None:
@@ -86,6 +87,9 @@ class Controller(object):
     raise NotImplementedError
 
   def state(self, axis):
+    raise NotImplementedError
+
+  def acctime(self, axis, new_acctime=None):
     raise NotImplementedError
 
 
