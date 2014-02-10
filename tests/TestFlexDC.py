@@ -1,3 +1,7 @@
+"""
+Unittest for FlexDC controller in emotion library.
+"""
+
 import unittest
 import sys
 import os
