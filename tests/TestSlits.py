@@ -51,7 +51,8 @@ class TestSlits(unittest.TestCase):
         emotion.load_cfg_fromstring(config_xml)
 
     def testTags(self):
-        controller = emotion.config.CONTROLLERS["test"]["object"]
+        s1ho = emotion.get_axis("s1ho")
+        controller = s1ho.controller
         for tag, axis_name in {"front":"s1f",
                                "back": "s1b",
                                "up": "s1u",
@@ -60,25 +61,29 @@ class TestSlits(unittest.TestCase):
                                "hoffset": "s1ho",
                                "vgap": "s1vg",
                                "voffset": "s1vo" }.iteritems():
-          self.assertEquals(controller._tagged[tag], [axis_name])
+          self.assertEquals(controller._tagged[tag][0].name, axis_name)
                    
     def testRealTags(self):
-        controller = emotion.config.CONTROLLERS["test"]["object"]
-        self.assertEquals(controller._tagged["real"], ["s1f", "s1b", "s1u", "s1d"])
+        s1ho = emotion.get_axis("s1ho")
+        controller = s1ho.controller
+        self.assertEquals([x.name for x in controller._tagged["real"]], ["s1f", "s1b", "s1u", "s1d"])
 
-    def testMatchTag(self):
-        self.assertTrue(emotion.get_axis("s1ho").match_tag("hoffset"))
-        self.assertFalse(emotion.get_axis("s1ho").match_tag("vgap"))
-        self.assertFalse(emotion.get_axis("s1vg").match_tag("real"))
+    def testHasTag(self):
+        self.assertTrue(emotion.get_axis("s1ho").has_tag("hoffset"))
+        self.assertFalse(emotion.get_axis("s1ho").has_tag("vgap"))
+        self.assertFalse(emotion.get_axis("s1vg").has_tag("real"))
+        self.assertTrue(emotion.get_axis("s1u").has_tag("real"))
 
 
     def testRealsList(self):
-        controller = emotion.config.CONTROLLERS["test"]["object"]
+        s1ho = emotion.get_axis("s1ho")
+        controller = s1ho.controller
         self.assertEquals(len(controller.reals), 4)
         self.assertTrue(all([isinstance(x, Axis) for x in controller.reals]))
 
     def testPseudosList(self):
-        controller = emotion.config.CONTROLLERS["test"]["object"]
+        s1ho = emotion.get_axis("s1ho")
+        controller = s1ho.controller
         self.assertEquals(len(controller.pseudos), 4)
         self.assertTrue(all([isinstance(x, Axis) for x in controller.pseudos]))
 
@@ -91,8 +96,9 @@ class TestSlits(unittest.TestCase):
     def testRealAxisIsRightObject(self):
         s1f = emotion.get_axis('s1f')
         m0 = emotion.get_axis('m0')
+        s1ho = emotion.get_axis("s1ho")
+        controller = s1ho.controller
         self.assertEquals(s1f.controller, m0.controller)
-        controller = emotion.config.CONTROLLERS["test"]["object"]
         self.assertEquals(s1f, controller.axes['s1f'])
 
     def testPseudoAxisState(self):
@@ -116,7 +122,9 @@ class TestSlits(unittest.TestCase):
         self.assertEquals(emotion.get_axis("s1hg").position(), 1)
         self.assertEquals(emotion.get_axis("s1ho").position(), 0.5)
 
-
+    def testPseudoAxisMove(self):
+        hoffset = emotion.get_axis("s1ho")
+        hoffset.move(2)
 
 if __name__ == '__main__':
     unittest.main()
