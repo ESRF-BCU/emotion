@@ -57,7 +57,7 @@ class TestFlexDCController(unittest.TestCase):
 
     def test_velocity(self):
         fd = emotion.get_axis("fd")
-        print "FlexDC velocity :", fd.controller.velocity(fd)
+        print "FlexDC velocity :", fd.velocity()
 
     def test_get_info(self):
         fd = emotion.get_axis("fd")
