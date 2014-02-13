@@ -16,6 +16,7 @@ class Emotion(PyTango.Device_4Impl):
 
     def delete_device(self):
         self.debug_stream("In delete_device()")
+        # must call finalize of controller ?
 
     def init_device(self):
         self.debug_stream("In init_device()")
@@ -73,6 +74,8 @@ class EmotionAxis(PyTango.Device_4Impl):
         except:
             self.set_status(traceback.format_exc())
 
+        self.once = False
+
         """
         self.attr_Steps_per_unit_read = 0.0
         self.attr_Steps_read = 0
@@ -90,8 +93,24 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_StepSize_read = 0.0
         """
 
+
+    def always_executed_hook(self):
+        self.debug_stream("In always_excuted_hook()")
+
+        if not self.once:
+            try:
+                # Initialises the "set" value of attribute object for the Position.
+                attr = self.get_device_attr().get_attr_by_name("Position")
+                attr.set_write_value(self.axis.position())
+                self.once = True
+            except:
+                print "cannot set write value of position"
+                print traceback.format_exc()
+
+
     def dev_state(self):
-        """ This command gets the device state (stored in its device_state data member) and returns it to the caller.
+        """ This command gets the device state (stored in its device_state
+        data member) and returns it to the caller.
 
         :param : none
         :type: PyTango.DevVoid
@@ -137,9 +156,6 @@ class EmotionAxis(PyTango.Device_4Impl):
 
     def read_Position(self, attr):
         self.debug_stream("In read_Position()")
-        print "In read_Position()..."
-        print attr.get_write_value()
-        attr.set_write_value(self.axis.position())
         attr.set_value(self.axis.position())
 
     def write_Position(self, attr):
@@ -163,7 +179,7 @@ class EmotionAxis(PyTango.Device_4Impl):
 
     def read_Velocity(self, attr):
         self.debug_stream("In read_Velocity()")
-        attr.set_value(self.attr_Velocity_read)
+        attr.set_value(self.axis.velocity())
 
     def write_Velocity(self, attr):
         self.debug_stream("In write_Velocity()")
@@ -476,8 +492,37 @@ class EmotionAxisClass(PyTango.DeviceClass):
         }
 
 
+
+def get_devices_from_server():
+
+    #get sub devices
+    fullpathExecName = sys.argv[0]
+    execName = os.path.split(fullpathExecName)[-1]
+    execName = os.path.splitext(execName)[0]
+    personalName = '/'.join([execName,sys.argv[1]])
+    db =  PyTango.Database()
+    result = db.get_device_class_list(personalName)
+
+    #"result" is :  DbDatum[
+    #    name = 'server'
+    # value_string = ['dserver/Emotion/cyril', 'DServer', 'pel/emotion/00', 'Emotion', 'pel/emotion_00/fd', 'EmotionAxis']]
+
+    class_dict = {}
+
+    for i in range(len(result.value_string) / 2) :
+        deviceName = result.value_string[i * 2]
+        class_name = result.value_string[i * 2 + 1]
+        if class_name not in class_dict:
+            class_dict[class_name] = []
+
+        class_dict[class_name].append(deviceName)
+
+    return class_dict
+
+
 def get_sub_devices() :
     className2deviceName = {}
+
     #get sub devices
     fullpathExecName = sys.argv[0]
     execName = os.path.split(fullpathExecName)[-1]
@@ -485,34 +530,66 @@ def get_sub_devices() :
     personalName = '/'.join([execName,sys.argv[1]])
     dataBase = PyTango.Database()
     result = dataBase.get_device_class_list(personalName)
+
+    #"result" is :  DbDatum[
+    #    name = 'server'
+    # value_string = ['dserver/Emotion/cyril', 'DServer', 'pel/emotion/00', 'Emotion']]
+
     for i in range(len(result.value_string) / 2) :
-        class_name = result.value_string[i * 2]
-        deviceName = result.value_string[i * 2 + 1]
-        className2deviceName[deviceName] = class_name
+        deviceName = result.value_string[i * 2]
+        class_name = result.value_string[i * 2 + 1]
+        className2deviceName[class_name] = deviceName
+
+    # example:
+    # "className2deviceName" is {'Emotion': 'pel/emotion/00', 'DServer': 'dserver/Emotion/cyril'}
     return className2deviceName
 
 
+"""
+Removes Emotion axis devices from the database.
+"""
+def delete_emotion_axes():
+    db = PyTango.Database()
+
+    for _axis_device_name in get_devices_from_server()["EmotionAxis"]:
+        print "deleting existing emotion axis :", _axis_device_name
+        db.delete_device(_axis_device_name)
+
 def main():
+
+    try:
+        delete_emotion_axes()
+    except:
+        print "can not delete emotion axes ??"
+
+
     try:
         py = PyTango.Util(sys.argv)
-        py.add_class(EmotionClass,Emotion,'Emotion')
+
+        py.add_class(EmotionClass, Emotion, 'Emotion')
         py.add_TgClass(EmotionAxisClass, EmotionAxis, 'EmotionAxis')
 
         U = PyTango.Util.instance()
-
         U.server_init()
 
-        emotion_admin_device_name = get_sub_devices().get('Emotion')
-        if emotion_admin_device_name:
-          blname, server_name, device_name = emotion_admin_device_name.split('/')
+
+        emotion_admin_device_names = get_devices_from_server().get('Emotion')
+
+        if emotion_admin_device_names:
+          blname, server_name, device_name = emotion_admin_device_names[0].split('/')
 
           for axis_name in emotion.config.axis_names_list():
             device_name = '/'.join((blname,
                                     '%s_%s' % (server_name, device_name),
                                     axis_name))
+
             U.create_device('EmotionAxis', device_name)
+        else:
+          print "No emotion supervisor ???"
 
         U.server_run()
+
+
 
     except PyTango.DevFailed,e:
         print '-------> Received a DevFailed exception:',e
