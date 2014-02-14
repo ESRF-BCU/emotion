@@ -29,8 +29,6 @@ class Emotion(PyTango.Device_4Impl):
             self.set_status(traceback.format_exc())
 
 
-
-
 class EmotionClass(PyTango.DeviceClass):
     #    Class Properties
     class_property_list = {
@@ -97,14 +95,21 @@ class EmotionAxis(PyTango.Device_4Impl):
     def always_executed_hook(self):
         self.debug_stream("In always_excuted_hook()")
 
+
+        # here instead of in init_device due to (Py?)Tango bug :
+        # device does not really exist in init_device... (Cyril)
         if not self.once:
             try:
-                # Initialises the "set" value of attribute object for the Position.
+                # Initialises "set" value of attributes.
                 attr = self.get_device_attr().get_attr_by_name("Position")
                 attr.set_write_value(self.axis.position())
+
+                attr = self.get_device_attr().get_attr_by_name("Velocity")
+                attr.set_write_value(float(self.axis.velocity()))
+
                 self.once = True
             except:
-                print "cannot set write value of position"
+                print "ERROR : Cannot set one of attributs write value."
                 print traceback.format_exc()
 
 
@@ -155,12 +160,20 @@ class EmotionAxis(PyTango.Device_4Impl):
 
 
     def read_Position(self, attr):
-        self.debug_stream("In read_Position()")
-        attr.set_value(self.axis.position())
+        try:
+            self.debug_stream("In read_Position()")
+            attr.set_value(self.axis.position())
+        except:
+            traceback.print_exc()
+            raise
 
     def write_Position(self, attr):
-        self.debug_stream("In write_Position()")
-        self.axis.move(attr.get_write_value(), wait=False)
+        try:
+            self.debug_stream("In write_Position()")
+            self.axis.move(attr.get_write_value(), wait=False)
+        except:
+            traceback.print_exc()
+            raise
 
 
     def read_Measured_Position(self, attr):
@@ -173,17 +186,39 @@ class EmotionAxis(PyTango.Device_4Impl):
         attr.set_value(self.attr_Acceleration_read)
 
     def write_Acceleration(self, attr):
-        self.debug_stream("In write_Acceleration()")
         data=attr.get_write_value()
+        self.debug_stream("In write_Acceleration(%f)"%float(data))
+
+
+
+
+    def read_AccTime(self, attr):
+        self.debug_stream("In read_AccTime()")
+        attr.set_value(self.attr_AccTime_read)
+
+    def write_AccTime(self, attr):
+        data=attr.get_write_value()
+        self.debug_stream("In write_AccTime(%f)"%float(data))
+
 
 
     def read_Velocity(self, attr):
-        self.debug_stream("In read_Velocity()")
-        attr.set_value(self.axis.velocity())
+        try:
+            _vel = self.axis.velocity()
+            attr.set_value(_vel)
+            self.debug_stream("In read_Velocity(%g)"%_vel)
+        except:
+            traceback.print_exc()
+            raise
 
     def write_Velocity(self, attr):
-        self.debug_stream("In write_Velocity()")
-        data=attr.get_write_value()
+        try:
+            data=float(attr.get_write_value())
+            self.debug_stream("In write_Velocity(%g)"%data)
+            self.axis.velocity(data)
+        except:
+            traceback.print_exc()
+            raise
 
 
     def read_Backlash(self, attr):
@@ -398,6 +433,18 @@ class EmotionAxisClass(PyTango.DeviceClass):
                 'Display level': PyTango.DispLevel.EXPERT,
                 'Memorized':"true"
             } ],
+        'AccTime':
+            [[PyTango.DevDouble,
+            PyTango.SCALAR,
+            PyTango.READ_WRITE],
+            {
+                'label': "Acceleration Time",
+                'unit': "s",
+                'format': "%10.6f",
+                'description': "The acceleration time of the motor.",
+                'Display level': PyTango.DispLevel.EXPERT,
+                'Memorized':"true"
+            } ],
         'Velocity':
             [[PyTango.DevDouble,
             PyTango.SCALAR,
@@ -405,9 +452,9 @@ class EmotionAxisClass(PyTango.DeviceClass):
             {
                 'label': "Velocity",
                 'unit': "units/s",
-                'format': "%6.3f",
+                'format': "%10.3f",
                 'description': "The constant velocity of the motor.",
-                'Display level': PyTango.DispLevel.EXPERT,
+#                'Display level': PyTango.DispLevel.EXPERT,
                 'Memorized':"true"
             } ],
         'Backlash':
@@ -520,30 +567,6 @@ def get_devices_from_server():
     return class_dict
 
 
-def get_sub_devices() :
-    className2deviceName = {}
-
-    #get sub devices
-    fullpathExecName = sys.argv[0]
-    execName = os.path.split(fullpathExecName)[-1]
-    execName = os.path.splitext(execName)[0]
-    personalName = '/'.join([execName,sys.argv[1]])
-    dataBase = PyTango.Database()
-    result = dataBase.get_device_class_list(personalName)
-
-    #"result" is :  DbDatum[
-    #    name = 'server'
-    # value_string = ['dserver/Emotion/cyril', 'DServer', 'pel/emotion/00', 'Emotion']]
-
-    for i in range(len(result.value_string) / 2) :
-        deviceName = result.value_string[i * 2]
-        class_name = result.value_string[i * 2 + 1]
-        className2deviceName[class_name] = deviceName
-
-    # example:
-    # "className2deviceName" is {'Emotion': 'pel/emotion/00', 'DServer': 'dserver/Emotion/cyril'}
-    return className2deviceName
-
 
 """
 Removes Emotion axis devices from the database.
@@ -561,7 +584,6 @@ def main():
         delete_emotion_axes()
     except:
         print "can not delete emotion axes ??"
-
 
     try:
         py = PyTango.Util(sys.argv)
