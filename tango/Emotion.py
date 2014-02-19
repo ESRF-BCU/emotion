@@ -594,7 +594,7 @@ def main():
     try:
         delete_emotion_axes()
     except:
-        print "can not delete emotion axes ??"
+        print "can not delete emotion axes."
 
     try:
         py = PyTango.Util(sys.argv)
@@ -616,12 +616,12 @@ def main():
                                     '%s_%s' % (server_name, device_name),
                                     axis_name))
 
+            print "creating %s"%device_name
             U.create_device('EmotionAxis', device_name)
         else:
           print "No emotion supervisor ???"
 
         U.server_run()
-
 
 
     except PyTango.DevFailed,e:
