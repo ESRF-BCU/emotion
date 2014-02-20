@@ -107,14 +107,19 @@ class EmotionAxis(PyTango.Device_4Impl):
                 attr = self.get_device_attr().get_attr_by_name("Velocity")
                 attr.set_write_value(float(self.axis.velocity()))
 
-                attr = self.get_device_attr().get_attr_by_name("Acceleration")
-                attr.set_write_value(float(self.axis.acceleration()))
+                try:
+                    _acc = self.axis.acceleration()
+                    attr = self.get_device_attr().get_attr_by_name("Acceleration")
+                    attr.set_write_value(float(_acc))
+                except:
+                    print "No acceleration for axis %s"%self._axis_name
 
-                self.once = True
             except:
                 print "ERROR : Cannot set one of attributs write value."
                 print traceback.format_exc()
 
+            finally:
+                self.once = True
 
     def dev_state(self):
         """ This command gets the device state (stored in its device_state
@@ -185,20 +190,24 @@ class EmotionAxis(PyTango.Device_4Impl):
 
 
     def read_Acceleration(self, attr):
+        print "want to read Acceleration"
         try:
             _acc = self.axis.acceleration()
             self.debug_stream("In read_Acceleration(%f)"%float(_acc))
             attr.set_value(_acc)
         except:
+            print "unable to read Acceleration"
             traceback.print_exc()
             raise
 
     def write_Acceleration(self, attr):
+        print "want to write Acceleration"
         try:
             data=float(attr.get_write_value())
             self.debug_stream("In write_Acceleration(%f)"%data)
             self.axis.acceleration(data)
         except:
+            print "unable to write Acceleration"
             traceback.print_exc()
             raise
 
@@ -564,7 +573,9 @@ def get_devices_from_server():
     #"result" is :  DbDatum[
     #    name = 'server'
     # value_string = ['dserver/Emotion/cyril', 'DServer', 'pel/emotion/00', 'Emotion', 'pel/emotion_00/fd', 'EmotionAxis']]
-
+    #print "--------------------"
+    #print result
+    #print "++++++++++++++++++++"
     class_dict = {}
 
     for i in range(len(result.value_string) / 2) :
@@ -585,12 +596,14 @@ Removes Emotion axis devices from the database.
 def delete_emotion_axes():
     db = PyTango.Database()
 
+    emotion_axis_device_names = get_devices_from_server().get('EmotionAxis')
+    # print emotion_axis_device_names
+
     for _axis_device_name in get_devices_from_server()["EmotionAxis"]:
         print "deleting existing emotion axis :", _axis_device_name
         db.delete_device(_axis_device_name)
 
 def main():
-
     try:
         delete_emotion_axes()
     except:
@@ -605,15 +618,16 @@ def main():
         U = PyTango.Util.instance()
         U.server_init()
 
-
         emotion_admin_device_names = get_devices_from_server().get('Emotion')
+        # print emotion_admin_device_names
 
         if emotion_admin_device_names:
-          blname, server_name, device_name = emotion_admin_device_names[0].split('/')
+          blname, server_name, device_number = emotion_admin_device_names[0].split('/')
+          # print "blname, server_name, device_number=", blname, server_name, device_number
 
           for axis_name in emotion.config.axis_names_list():
             device_name = '/'.join((blname,
-                                    '%s_%s' % (server_name, device_name),
+                                    '%s_%s' % (server_name, device_number),
                                     axis_name))
 
             print "creating %s"%device_name
