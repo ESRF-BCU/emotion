@@ -23,7 +23,7 @@ class Emotion(PyTango.Device_4Impl):
         self.get_device_properties(self.get_device_class())
 
         try:
-            emotion.load_cfg(self.config_file)
+            TgGevent.execute(emotion.load_cfg, self.config_file)
         except:
             self.set_state(PyTango.DevState.FAULT)
             self.set_status(traceback.format_exc())
