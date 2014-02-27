@@ -64,7 +64,7 @@ class TestMockupController(unittest.TestCase):
 
     def setUp(self):
         emotion.load_cfg_fromstring(config_xml)
-    
+
     def test_get_axis(self):
         robz = emotion.get_axis("robz")
         self.assertTrue(robz)
@@ -92,7 +92,7 @@ class TestMockupController(unittest.TestCase):
     def test_stop(self):
         robz = emotion.get_axis('robz')
         self.assertEqual(robz.state(), "READY")
-        move_greenlet = robz.move(180, wait=False)
+        robz.move(180, wait=False)
         self.assertEqual(robz.state(), "MOVING")
         robz.stop()
         self.assertEqual(robz.state(), "READY")
@@ -152,10 +152,10 @@ class TestMockupController(unittest.TestCase):
     def test_axis_config_velocity(self):
         roby = emotion.get_axis("roby")
         self.assertEqual(roby.velocity(), roby.config.get("velocity", int))
-    
+
     def test_ctrlc(self):
         robz = emotion.get_axis("robz")
-        final_pos = robz.position()+100
+        final_pos = robz.position() + 100
         move_greenlet = robz.move(final_pos, wait=False)
         self.assertEqual(robz.state(), "MOVING")
         gevent.sleep(0.5)
