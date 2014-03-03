@@ -2,7 +2,7 @@ import types
 import functools
 from .config.static import StaticConfig
 from .settings import AxisSettings
-from .axis import Motion, AxisRef, MOVING, READY, FAULT, UNKNOWN
+from .axis import Motion, AxisRef, MOVING, READY, FAULT
 from .config import get_axis
 from . import event
 
@@ -114,6 +114,9 @@ class Controller(object):
         raise NotImplementedError
 
     def stop(self, axis):
+        raise NotImplementedError
+
+    def stop_all(self):
         raise NotImplementedError
 
     def position(self, axis, new_pos=None, measured=False):
