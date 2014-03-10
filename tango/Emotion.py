@@ -598,12 +598,10 @@ def get_devices_from_server():
     return class_dict
 
 
-"""
-Removes Emotion axis devices from the database.
-"""
-
-
 def delete_emotion_axes():
+    """
+    Removes Emotion axis devices from the database.
+    """
     db = PyTango.Database()
 
     emotion_axis_device_names = get_devices_from_server().get('EmotionAxis')
@@ -614,11 +612,29 @@ def delete_emotion_axes():
         db.delete_device(_axis_device_name)
 
 
+def delete_unused_emotion_axes():
+    """
+    Removes Emotion axes that are not running.
+    """
+    db = PyTango.Database()
+
+    # get EmotionAxis (only from current instance).
+    emotion_axis_device_names = get_devices_from_server().get('EmotionAxis')
+    print ""
+    print "[EMOTION] axis :"
+    print emotion_axis_device_names
+    print ""
+
+
+
 def main():
     try:
-        delete_emotion_axes()
+        # Too brutal...
+        # delete_emotion_axes()
+        delete_unused_emotion_axes()
     except:
-        print "can not delete emotion axes."
+        print "[EMOTION][ERROR] Can not delete unused emotion axes."
+
 
     try:
         py = PyTango.Util(sys.argv)
@@ -629,6 +645,13 @@ def main():
         U = PyTango.Util.instance()
         U.server_init()
 
+    except PyTango.DevFailed, e:
+        print "[EMOTION][ERROR] In server initialization"
+        import traceback
+        traceback.print_exc()
+        exit()
+
+    try:
         emotion_admin_device_names = get_devices_from_server().get('Emotion')
         # print emotion_admin_device_names
 
@@ -643,17 +666,25 @@ def main():
                                         '%s_%s' % (server_name, device_number),
                                         axis_name))
 
-                print "creating %s" % device_name
+                print "[EMOTION] Creating %s" % device_name
                 U.create_device('EmotionAxis', device_name)
         else:
-            print "No emotion supervisor ???"
+            print "[EMOTION][ERROR] No emotion supervisor ???"
+    except PyTango.DevFailed, e:
+        print "[EMOTION][ERROR] In devices initialization"
+        import traceback
+        traceback.print_exc()
+        exit()
 
+    try:
         U.server_run()
 
     except PyTango.DevFailed, e:
-        print '-------> Received a DevFailed exception:', e
+        import traceback
+        traceback.print_exc()
     except Exception, e:
-        print '-------> An unforeseen exception occured....', e
+        import traceback
+        traceback.print_exc()
 
 if __name__ == '__main__':
     main()
