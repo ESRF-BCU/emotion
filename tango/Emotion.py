@@ -307,10 +307,6 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.debug_stream("In read_StepSize()")
         attr.set_value(self.axis.step_size())
 
-#    def write_StepSize(self, attr):
-#        self.debug_stream("In write_StepSize()")
-#        print "cannot set step_size"
-
     def read_attr_hardware(self, data):
         self.debug_stream("In read_attr_hardware()")
 
@@ -666,25 +662,22 @@ def main():
                                         '%s_%s' % (server_name, device_number),
                                         axis_name))
 
+                try:
+                    emotion.log.info("Creating %s" % device_name)
+                    U.create_device('EmotionAxis', device_name)
+                except PyTango.DevFailed:
+                    pass
                 print "[EMOTION] Creating %s" % device_name
                 U.create_device('EmotionAxis', device_name)
         else:
             print "[EMOTION][ERROR] No emotion supervisor ???"
     except PyTango.DevFailed, e:
-        print "[EMOTION][ERROR] In devices initialization"
-        import traceback
-        traceback.print_exc()
-        exit()
+        emotion.log.exception(
+            "Error in devices initialization",
+            raise_exception=False)
+        sys.exit(0)
 
-    try:
-        U.server_run()
-
-    except PyTango.DevFailed, e:
-        import traceback
-        traceback.print_exc()
-    except Exception, e:
-        import traceback
-        traceback.print_exc()
+    U.server_run()
 
 if __name__ == '__main__':
     main()
