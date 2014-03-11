@@ -175,6 +175,7 @@ class EmotionAxis(PyTango.Device_4Impl):
                 self.set_state(PyTango.DevState.FAULT)
         except:
             self.set_state(PyTango.DevState.FAULT)
+            self.set_status(traceback.format_exc())
 
         # ----- PROTECTED REGION END -----#      //      TOTO.State
         if argout != PyTango.DevState.ALARM:
