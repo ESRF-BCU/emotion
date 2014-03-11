@@ -104,7 +104,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         # device does not really exist in init_device... (Cyril)
         if not self.once:
             try:
-                # Initialises "set" value of attributes.
+                # Initialises "set values" of attributes.
 
                 # Position
                 attr = self.get_device_attr().get_attr_by_name("Position")
@@ -338,8 +338,9 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.axis.stop()
 
     def StepUp(self):
-        """ perform a relative motion of ``stepSize`` in the forward direction.
-         StepSize is defined as an attribute of the device.
+        """ perform a relative motion of ``stepSize`` in the forward
+         direction.  StepSize is defined as an attribute of the
+         device.
 
         :param :
         :type: PyTango.DevVoid
@@ -348,8 +349,9 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.debug_stream("In StepUp()")
 
     def StepDown(self):
-        """ perform a relative motion of ``stepSize`` in the backward direction.
-         StepSize is defined as an attribute of the device.
+        """ perform a relative motion of ``stepSize`` in the backward
+         direction.  StepSize is defined as an attribute of the
+         device.
 
         :param :
         :type: PyTango.DevVoid
@@ -528,7 +530,8 @@ class EmotionAxisClass(PyTango.DeviceClass):
              'label': "first step velocity",
              'unit': "units/s",
              'format': "%10.3f",
-             'description': "number of unit/s for the first step and for the move reference",
+             'description': "number of unit/s for the first step and for \
+             the move reference",
              'Display level': PyTango.DispLevel.EXPERT,
              'Memorized': "true"
          }],
@@ -537,7 +540,8 @@ class EmotionAxisClass(PyTango.DeviceClass):
           PyTango.SCALAR,
           PyTango.READ],
          {
-             'description': "indicates if the axis is below or above the position of the home switch",
+             'description': "indicates if the axis is below or above \
+             the position of the home switch",
          }],
         'StepSize':
         [[PyTango.DevDouble,
@@ -546,7 +550,9 @@ class EmotionAxisClass(PyTango.DeviceClass):
          {
              'unit': "mm",
              'format': "%10.3f",
-             'description': "Size of the relative step performed by the StepUp and StepDown commands.\nThe StepSize is expressed in physical unit.",
+             'description': "Size of the relative step performed by the \
+             StepUp and StepDown commands.\nThe StepSize\
+             is expressed in physical unit.",
              'Display level': PyTango.DispLevel.EXPERT,
          }],
     }
@@ -563,7 +569,8 @@ def get_devices_from_server():
 
     #"result" is :  DbDatum[
     #    name = 'server'
-    # value_string = ['dserver/Emotion/cyril', 'DServer', 'pel/emotion/00', 'Emotion', 'pel/emotion_00/fd', 'EmotionAxis']]
+    # value_string = ['dserver/Emotion/cyril', 'DServer',
+    # 'pel/emotion/00', 'Emotion', 'pel/emotion_00/fd', 'EmotionAxis']]
     # print "--------------------"
     # print result
     # print "++++++++++++++++++++"
@@ -618,6 +625,31 @@ def main():
 
     try:
         py = PyTango.Util(sys.argv)
+
+        log_param = [param for param in sys.argv if "-v" in param]
+        if log_param:
+            log_param = log_param[0]
+            # print "-vN log flag found   len=%d" % len(log_param)
+            if len(log_param) > 2:
+                tango_log_level = int(log_param[2:])
+            elif len(log_param) > 1:
+                tango_log_level = 4
+            else:
+                print "EMOTION ERROR LOG LEVEL"
+
+            if tango_log_level == 1:
+                emotion.log.level(40)
+            elif tango_log_level == 2:
+                emotion.log.level(30)
+            elif tango_log_level == 3:
+                emotion.log.level(20)
+            else:
+                emotion.log.level(10)
+        else:
+            emotion.log.level(50)
+            tango_log_level = 0
+
+        emotion.log.info("tango log level=%d" % tango_log_level)
 
         py.add_class(EmotionClass, Emotion, 'Emotion')
         py.add_TgClass(EmotionAxisClass, EmotionAxis, 'EmotionAxis')
