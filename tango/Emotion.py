@@ -683,7 +683,10 @@ def main():
                 except PyTango.DevFailed:
                     pass
         else:
-            emotion.log.error("No emotion supervisor device")
+            # Do not raise exception to be able to use
+            # Jive device creation wizard.
+            emotion.log.error("No emotion supervisor device",
+                              raise_exception=False)
     except PyTango.DevFailed, e:
         emotion.log.exception(
             "Error in devices initialization",
