@@ -1,5 +1,4 @@
 from distutils.core import setup
-import sys
 
 setup(name="emotion", version="0.1",
       description="ESRF Motion library",
