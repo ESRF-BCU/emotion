@@ -167,9 +167,10 @@ class EmotionAxis(PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(TOTO.State) ENABLED START -----#
 
         try:
-            if self.axis.state() == emotion.axis.READY:
+            _state = self.axis.state()
+            if _state == emotion.axis.READY:
                 self.set_state(PyTango.DevState.ON)
-            elif self.axis.state() == emotion.axis.MOVING:
+            elif _state == emotion.axis.MOVING:
                 self.set_state(PyTango.DevState.MOVING)
             else:
                 self.set_state(PyTango.DevState.FAULT)
@@ -207,6 +208,10 @@ class EmotionAxis(PyTango.Device_4Impl):
         attr.set_value(self.axis.position())
 
     def write_Position(self, attr):
+        '''
+        Sends movement command to Emotion axis.
+        NB : take care to call WaitMove before sending another movement
+        '''
         self.debug_stream("In write_Position()")
         self.axis.move(attr.get_write_value(), wait=False)
 
@@ -297,7 +302,8 @@ class EmotionAxis(PyTango.Device_4Impl):
         attr.set_value(self.axis.step_size())
 
     def read_attr_hardware(self, data):
-        self.debug_stream("In read_attr_hardware()")
+        pass
+        # self.debug_stream("In read_attr_hardware()")
 
     #-------------------------------------------------------------------------
     #    Motor command methods
@@ -361,6 +367,25 @@ class EmotionAxis(PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In StepDown()")
 
+    def GetInfo(self):
+        """ provide information about the axis.
+
+        :param :
+        :type: PyTango.DevVoid
+        :return:
+        :rtype: PyTango.DevString """
+        self.debug_stream("In GetInfo()")
+        return self.axis.get_info()
+
+    def WaitMove(self):
+        """ Waits end of last motion
+
+        :param :
+        :type: PyTango.DevVoid
+        :return:
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In WaitMove()")
+        return self.axis.wait_move()
 
 class EmotionAxisClass(PyTango.DeviceClass):
     #    Class Properties
@@ -391,6 +416,13 @@ class EmotionAxisClass(PyTango.DeviceClass):
         'StepDown':
         [[PyTango.DevVoid, "none"],
          [PyTango.DevVoid, "none"]],
+        'GetInfo':
+        [[PyTango.DevVoid, "none"],
+         [PyTango.DevString, "none"]],
+        'WaitMove':
+        [[PyTango.DevVoid, "none"],
+         [PyTango.DevVoid, "none"]],
+
     }
 
     #    Attribute definitions
