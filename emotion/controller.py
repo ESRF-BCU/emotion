@@ -1,10 +1,12 @@
+__package__ = 'emotion.controller'
+
 import types
 import functools
-from .config.static import StaticConfig
-from .settings import AxisSettings
-from .axis import Motion, AxisRef, MOVING, READY, FAULT
-from .config import get_axis
-from . import event
+from ..config.static import StaticConfig
+from ..settings import AxisSettings
+from ..axis import Motion, AxisRef, MOVING, READY, FAULT
+from ..config import get_axis
+from .. import event
 
 
 def add_axis_method(axis_object, method, name=None, args=[]):

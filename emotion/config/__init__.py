@@ -1,3 +1,5 @@
+__package__ = 'emotion.config'
+
 import sys
 import os
 from ..axis import Axis, AxisRef

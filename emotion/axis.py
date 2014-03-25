@@ -1,5 +1,7 @@
-from .task_utils import *
-from .config.static import StaticConfig
+__package__ = 'emotion.axis'
+
+from ..task_utils import *
+from ..config.static import StaticConfig
 import time
 
 READY, MOVING, FAULT, UNKNOWN = ("READY", "MOVING", "FAULT", "UNKNOWN")
