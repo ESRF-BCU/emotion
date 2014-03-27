@@ -44,9 +44,9 @@ class TestPI_E753Controller(unittest.TestCase):
         pz = emotion.get_axis("pz")
         print "E753 IDN :", pz.controller._get_identifier()
 
-    def test_get_infos(self):
+    def test_get_info(self):
         pz = emotion.get_axis("pz")
-        print "E753 INFOS :\n", pz.controller._get_infos()
+        print "E753 INFOS :\n", pz.controller._get_info()
 
 # called at end of each test
 #    def tearDown(self):
