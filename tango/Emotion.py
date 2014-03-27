@@ -88,7 +88,6 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_Position_read = 0.0
         self.attr_Measured_Position_read = 0.0
         self.attr_Acceleration_read = 0.0
-        self.attr_Velocity_read = 0.0
         self.attr_Backlash_read = 0.0
         self.attr_Home_position_read = 0.0
         self.attr_HardLimitLow_read = False
@@ -282,7 +281,7 @@ class EmotionAxis(PyTango.Device_4Impl):
 
     def write_Home_position(self, attr):
         self.debug_stream("In write_Home_position()")
-        #data = attr.get_write_value()
+        self.attr_Home_position_read = data
 
     def read_HardLimitLow(self, attr):
         self.debug_stream("In read_HardLimitLow()")
@@ -348,7 +347,8 @@ class EmotionAxis(PyTango.Device_4Impl):
         :type: PyTango.DevVoid
         :return:
         :rtype: PyTango.DevVoid """
-        self.debug_stream("In GoHome()")
+        self.debug_stream("In GoHome(%f)" % self.attr_Home_position_read)
+        self.axis.home(self.attr_Home_position_read, wait=False)
 
     def Abort(self):
         """ Stop immediately the motor
