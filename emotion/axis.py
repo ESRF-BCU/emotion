@@ -122,7 +122,7 @@ class Axis(object):
     def _handle_move(self, motion):
         def update_settings():
             state = self.__controller.state(self)
-            self.settings.set("state", state)
+            self.settings.set("state", state, write=False)
             pos = self._position()
             self.settings.set("position", pos)
             return state
@@ -130,11 +130,11 @@ class Axis(object):
         with cleanup(update_settings):
             while True:
                 state = self.__controller.state(self)
-                self.settings.set("state", state)
+                self.settings.set("state", state, write=False)
                 if state != MOVING:
                     break
                 pos = self._position()
-                self.settings.set("position", pos)
+                self.settings.set("position", pos, write=False)
                 time.sleep(0.02)
 
             if motion.backlash:
@@ -244,7 +244,7 @@ class Axis(object):
             self.__controller.home_search(self)
             while True:
                 state = self.__controller.home_state(self)
-                self.settings.set("state", state)
+                self.settings.set("state", state, write=False)
                 if state != MOVING:
                     break
                 time.sleep(0.02)
