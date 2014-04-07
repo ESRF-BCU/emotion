@@ -3,7 +3,7 @@ __package__ = 'emotion.controller'
 import types
 import functools
 from ..config.static import StaticConfig
-from ..settings import AxisSettings
+from ..settings import ControllerAxisSettings
 from ..axis import AxisRef
 from ..group import Group
 from ..config import get_axis
@@ -29,7 +29,7 @@ class Controller(object):
         self._axes = dict()
         self._tagged = dict()
 
-        self.axis_settings = AxisSettings()
+        self.axis_settings = ControllerAxisSettings()
 
         for axis_name, axis_class, axis_config in axes:
             axis = axis_class(axis_name, self, axis_config)
@@ -39,10 +39,6 @@ class Controller(object):
                 for tag in axis_tags.split():
                     self._tagged.setdefault(tag, []).append(axis)  # _name)
             self.__initialized_axis[axis] = False
-
-            # install axis.settings set/get methods
-            axis.settings.set = functools.partial(self.axis_settings.set, axis)
-            axis.settings.get = functools.partial(self.axis_settings.get, axis)
 
     @property
     def axes(self):

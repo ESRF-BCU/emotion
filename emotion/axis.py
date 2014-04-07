@@ -2,6 +2,7 @@ __package__ = 'emotion.axis'
 
 from ..task_utils import *
 from ..config.static import StaticConfig
+from ..settings import AxisSettings
 import time
 
 READY, MOVING, FAULT, UNKNOWN = ("READY", "MOVING", "FAULT", "UNKNOWN")
@@ -22,19 +23,11 @@ class Motion(object):
 
 class Axis(object):
 
-    class Settings:
-
-        def set(*args, **kwargs):
-            pass
-
-        def get(*args, **kwargs):
-            pass
-
     def __init__(self, name, controller, config):
         self.__name = name
         self.__controller = controller
         self.__config = StaticConfig(config)
-        self.__settings = Axis.Settings()
+        self.__settings = AxisSettings(self)
         self.__move_done = gevent.event.Event()
         self.__move_done.set()
         self.__offset = 0
@@ -265,7 +258,7 @@ class AxisRef(object):
     def __init__(self, name, _, config):
         self.__name = name
         self.__config = config
-        self.settings = Axis.Settings()
+        self.settings = AxisSettings(None)
 
     @property
     def name(self):
