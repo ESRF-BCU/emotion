@@ -2,6 +2,7 @@ __package__ = 'emotion.config'
 
 import sys
 import os
+from .. import event
 from ..axis import Axis, AxisRef
 from ..group import Group
 
@@ -210,6 +211,7 @@ def get_axis(axis_name):
         controller["initialized"] = True
 
     axis = controller_instance.get_axis(axis_name)
+    event.connect(axis, "write_setting", write_setting)
 
     return axis
 
@@ -303,3 +305,18 @@ def load_cfg_fromstring(config_str):
     if BACKEND == 'xml':
         from .xml_backend import load_cfg_fromstring
         return load_cfg_fromstring(config_str)
+
+
+def write_setting(axis_config, setting_name, setting_value, commit=True):
+    if BACKEND == 'xml':
+        from .xml_backend import write_setting
+        write_setting(
+            axis_config.config_dict, setting_name, setting_value)
+        if commit:
+            commit_settings(axis_config)
+
+
+def commit_settings(axis_config):
+    if BACKEND == 'xml':
+        from .xml_backend import commit_settings
+        commit_settings(axis_config.config_dict)
