@@ -93,6 +93,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         self._t = time.time()
 
         self.attr_Home_position_read = 0.0
+        self.attr_StepSize_read = 0.0
         """
         self.attr_Steps_per_unit_read = 0.0
         self.attr_Steps_read = 0
@@ -105,7 +106,6 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_PresetPosition_read = 0.0
         self.attr_FirstVelocity_read = 0.0
         self.attr_Home_side_read = False
-        self.attr_StepSize_read = 0.0
         """
 
     def always_executed_hook(self):
@@ -327,6 +327,12 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.debug_stream("In read_StepSize()")
         attr.set_value(self.attr_StepSize_read)
 
+    def write_StepSize(self, attr):
+        self.debug_stream("In write_StepSize()")
+        data = attr.get_write_value()
+        self.attr_StepSize_read = data
+        attr.set_value(data)
+
     def read_attr_hardware(self, data):
         pass
         # self.debug_stream("In read_attr_hardware()")
@@ -404,6 +410,16 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.debug_stream("In GetInfo()")
         return self.axis.get_info()
 
+    def RawCom(self, argin):
+        """ send a raw command to the axis. Be carefull!
+
+        :param argin: String with command
+        :type: PyTango.DevString
+        :return:
+        :rtype: PyTango.DevString """
+        self.debug_stream("In RawCom()")
+        return self.axis.raw_com(argin)
+
     def WaitMove(self):
         """ Waits end of last motion
 
@@ -449,11 +465,16 @@ class EmotionAxisClass(PyTango.DeviceClass):
          [PyTango.DevVoid, "none"]],
         'GetInfo':
         [[PyTango.DevVoid, "none"],
-         [PyTango.DevString, "none"]],
+         [PyTango.DevString, "Info string returned by the axis"]],
+        'RawCom':
+        [[PyTango.DevString, "Raw command to be send to the axis. Be carefull!"],
+         [PyTango.DevString, "Answer provided by the axis"],
+        {
+            'Display level': PyTango.DispLevel.EXPERT,
+        }],
         'WaitMove':
         [[PyTango.DevVoid, "none"],
          [PyTango.DevVoid, "none"]],
-
     }
 
     #    Attribute definitions
@@ -714,6 +735,7 @@ def main():
 
         emotion.log.info("tango log level=%d" % tango_log_level)
 
+        # what is the diff : add_class add_TgClass ?
         py.add_class(EmotionClass, Emotion, 'Emotion')
         py.add_TgClass(EmotionAxisClass, EmotionAxis, 'EmotionAxis')
 
