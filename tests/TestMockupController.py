@@ -151,6 +151,7 @@ class TestMockupController(unittest.TestCase):
     def test_axis_set_velocity(self):
         roby = emotion.get_axis("roby")
         org = roby.velocity()
+        # vel is in user-unit per seconds.
         vel = 5000
         self.assertEqual(roby.velocity(vel), vel)
         roby.velocity(org)
