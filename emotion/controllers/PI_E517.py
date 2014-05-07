@@ -1,6 +1,6 @@
 import time
 
-from emotion import Controller
+from emotion import Controller, log
 from emotion.controller import add_axis_method
 from emotion.axis import READY, MOVING
 
