@@ -1,4 +1,4 @@
-from emotion import Controller
+from emotion import Controller, log
 from emotion.axis import READY, MOVING
 from emotion.controller import add_axis_method
 import math
