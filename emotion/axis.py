@@ -5,7 +5,7 @@ from ..config.static import StaticConfig
 from ..settings import AxisSettings
 import time
 
-READY, MOVING, FAULT, UNKNOWN = ("READY", "MOVING", "FAULT", "UNKNOWN")
+READY, MOVING, FAULT, UNKNOWN = ("READY", "MOVING", "FAULT", "UNKNOWN", "OFF")
 
 
 class Motion(object):
@@ -67,12 +67,14 @@ class Axis(object):
         return False
 
     def on(self):
-        print "axis.py : on"
-        self.__controller.on(self)
+        self.__controller.set_on(self)
+	state = self.__controller.state(self)
+        self.settings.set("state", state, write=False)
 
     def off(self):
-        print "axis.py: OFF"
-        self.__controller.off(self)
+        self.__controller.set_off(self)
+        state = self.__controller.state(self)
+        self.settings.set("state", state, write=False)
 
     def steps_per_unit(self):
         """
