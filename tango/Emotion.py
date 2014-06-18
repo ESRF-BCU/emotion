@@ -227,6 +227,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         """
         Sends movement command to Emotion axis.
         NB : take care to call WaitMove before sending another movement
+        self.write_position_wait is a device property (False by default).
         """
         self.debug_stream("In write_Position()")
         #self.axis.move(attr.get_write_value(), wait=False)
