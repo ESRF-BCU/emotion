@@ -1,3 +1,6 @@
+import sys
+import os
+
 """
 Emotion generic library
 """
@@ -9,6 +12,13 @@ from emotion.axis import READY, MOVING, UNKNOWN
 """
 IcePAP specific library
 """
+sys.path.insert(
+    0,
+    os.path.abspath(
+        os.path.join(
+        os.path.dirname(__file__),
+        "./icepap_utils")))
+
 import icepap.lib
 
 
