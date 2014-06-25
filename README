@@ -1,1 +1,8 @@
 emotion
+
+use :
+   make install
+to create links to use emotion in a standard bliss computer.
+
+Authors : M.Guijarro C.Guilloud M.Perez (BLISS 2014)
+
