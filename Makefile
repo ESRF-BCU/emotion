@@ -13,7 +13,8 @@ BLISSADM_PATH=/users/blissadm
 install:
 	ln -sf ${EMOTION_PATH}/tango/emotion_server ${BLISSADM_PATH}/server/src/emotion_server
 	ln -snf ${EMOTION_PATH} ${BLISSADM_PATH}/emotion
-	ln -snf ${EMOTION_PATH}/tango/config ${BLISSADM_PATH}/local/userconf/emotion
+	mkdir -p /users/blissadm/local/userconf/emotion
+	ln -sf ${EMOTION_PATH}/spec/tango_mot.mac ${BLISSADM_PATH}/spec/macros/tango_mot.mac
 
 # Builds sphinx documentation.
 doc:
@@ -25,6 +26,5 @@ clean:
 	rm -rf *.pyc *~
 	rm -f ${BLISSADM_PATH}/server/src/emotion_server
 	rm -f ${BLISSADM_PATH}/emotion
-	rm -f ${BLISSADM_PATH}/local/userconf/emotion
-
+	rm -f ${BLISSADM_PATH}/spec/macros/tango_mot.mac
 
