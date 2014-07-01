@@ -170,6 +170,12 @@ class TestMockupController(unittest.TestCase):
         roby = emotion.get_axis("roby")
         self.assertEqual(roby.get_identifier(), roby.name)
 
+    def test_axis_custom_method_list(self):
+        roby = emotion.get_axis("roby")
+        cm_list = roby.get_custom_methods_list()
+        # print "list of custom methods:"
+        # print cm_list
+
     def test_axis_config_velocity(self):
         roby = emotion.get_axis("roby")
         self.assertEqual(roby.velocity(), roby.config.get("velocity", int))

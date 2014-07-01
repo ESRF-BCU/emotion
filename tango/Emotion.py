@@ -26,11 +26,11 @@ class Emotion(PyTango.Device_4Impl):
         self.debug_stream("In init_device() of controller")
         self.get_device_properties(self.get_device_class())
 
-        try:
-            TgGevent.execute(emotion.load_cfg, self.config_file)
-        except:
-            self.set_state(PyTango.DevState.FAULT)
-            self.set_status(traceback.format_exc())
+#        try:
+#            TgGevent.execute(emotion.load_cfg, self.config_file)
+#        except:
+#            self.set_state(PyTango.DevState.FAULT)
+#            self.set_status(traceback.format_exc())
 
 
 class EmotionClass(PyTango.DeviceClass):
@@ -86,6 +86,8 @@ class EmotionAxis(PyTango.Device_4Impl):
             self.axis = TgGevent.get_proxy(emotion.get_axis, self._axis_name)
         except:
             self.set_status(traceback.format_exc())
+
+        self.debug_stream("axis found : %s" % self._axis_name)
 
         self.once = False
 
@@ -708,8 +710,6 @@ def delete_unused_emotion_axes():
 
 def main():
     try:
-        # Too brutal...
-        # delete_emotion_axes()
         delete_unused_emotion_axes()
     except:
         emotion.log.error(
@@ -728,7 +728,7 @@ def main():
             elif len(log_param) > 1:
                 tango_log_level = 4
             else:
-                print "EMOTION ERROR LOG LEVEL"
+                print "Emotion.py - EMOTION ERROR LOG LEVEL"
 
             if tango_log_level == 1:
                 emotion.log.level(40)
@@ -744,18 +744,56 @@ def main():
 
         emotion.log.info("tango log level=%d" % tango_log_level)
 
-        # what is the diff : add_class add_TgClass ?
-        py.add_class(EmotionClass, Emotion, 'Emotion')
-        py.add_TgClass(EmotionAxisClass, EmotionAxis, 'EmotionAxis')
+        db = py.instance().get_database()
+        device_list = get_devices_from_server().get('Emotion')
+        _device = device_list[0]
+        print "Emotion.py - Found device : ", _device
+        _config_file = db.get_device_property(_device, "config_file")["config_file"][0]
+        print "Emotion.py - config file: ", _config_file
+
+        py.add_class(EmotionClass, Emotion)
+        py.add_class(EmotionAxisClass, EmotionAxis)
 
         U = PyTango.Util.instance()
+
+
+        TgGevent.execute(emotion.load_cfg, _config_file)
+
+        # Get axis names defined in config file.
+        axis_names = emotion.config.axis_names_list()
+        print  "axis names:", axis_names
+
+        # Takes the 1st one.
+        axis_name = axis_names[0]
+        _axis = TgGevent.get_proxy(emotion.get_axis, axis_name)
+
+        # Search for custom commands.
+        _cmd_list =_axis.get_custom_methods_list()
+        print "Emotion.py - '%s' custom commands:" % axis_name
+
+
+        types_conv_tab = dict()
+        types_conv_tab['Void']   = PyTango.DevVoid
+        types_conv_tab['String'] = PyTango.DevString
+        types_conv_tab['Long']   = PyTango.DevLong
+
+        # Adds custom methods:
+        for (fff, fname, (t1, t2)) in _cmd_list:
+            print "   ", fname
+            setattr(EmotionAxis, fname, fff)
+            tin  = types_conv_tab[t1]
+            tout = types_conv_tab[t2]
+            EmotionAxisClass.cmd_list.update({fname:  [[tin, ""], [tout, ""]]})
+
         U.server_init()
 
     except PyTango.DevFailed, e:
+        print traceback.format_exc()
         emotion.log.exception(
             "Error in server initialization",
             raise_exception=False)
         sys.exit(0)
+
 
     try:
         emotion_admin_device_names = get_devices_from_server().get('Emotion')
@@ -770,17 +808,20 @@ def main():
                                         axis_name))
 
                 try:
-                    print "Creating %s" % device_name
+                    print "Emotion.py - Creating %s" % device_name
                     emotion.log.info("Creating %s" % device_name)
                     U.create_device('EmotionAxis', device_name)
                 except PyTango.DevFailed:
+                    # print traceback.format_exc()
                     pass
         else:
             # Do not raise exception to be able to use
             # Jive device creation wizard.
+            print "-----------"
             emotion.log.error("No emotion supervisor device",
                               raise_exception=False)
     except PyTango.DevFailed, e:
+        print traceback.format_exc()
         emotion.log.exception(
             "Error in devices initialization",
             raise_exception=False)
