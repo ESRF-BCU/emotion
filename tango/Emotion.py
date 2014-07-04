@@ -10,6 +10,8 @@ import TgGevent
 import sys
 import os
 import time
+import types
+
 
 class Emotion(PyTango.Device_4Impl):
 
@@ -21,16 +23,9 @@ class Emotion(PyTango.Device_4Impl):
     def delete_device(self):
         self.debug_stream("In delete_device() of controller")
 
-
     def init_device(self):
         self.debug_stream("In init_device() of controller")
         self.get_device_properties(self.get_device_class())
-
-#        try:
-#            TgGevent.execute(emotion.load_cfg, self.config_file)
-#        except:
-#            self.set_state(PyTango.DevState.FAULT)
-#            self.set_status(traceback.format_exc())
 
 
 class EmotionClass(PyTango.DeviceClass):
@@ -223,7 +218,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         _duration = time.time() - _t
         if _duration > 0.05:
             print "{%s} read_Position : duration seems too long : %5.3g ms" % \
-            (self._ds_name, _duration*1000)
+                (self._ds_name, _duration * 1000)
 
     def write_Position(self, attr):
         """
@@ -244,7 +239,7 @@ class EmotionAxis(PyTango.Device_4Impl):
 
         if _duration > 0.01:
             print "{%s} read_Measured_Position : duration seems too long : %5.3g ms" % \
-            (self._ds_name, _duration*1000)
+                (self._ds_name, _duration * 1000)
 
     def read_Acceleration(self, attr):
         try:
@@ -446,6 +441,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.debug_stream("In WaitMove()")
         return self.axis.wait_move()
 
+
 class EmotionAxisClass(PyTango.DeviceClass):
     #    Class Properties
     class_property_list = {
@@ -475,17 +471,17 @@ class EmotionAxisClass(PyTango.DeviceClass):
          [PyTango.DevVoid, "none"]],
         'StepUp':
         [[PyTango.DevVoid, "none"],
-         [PyTango.DevVoid, "none"],{ 'Display level': PyTango.DispLevel.EXPERT,}],
+         [PyTango.DevVoid, "none"], {'Display level': PyTango.DispLevel.EXPERT, }],
         'StepDown':
         [[PyTango.DevVoid, "none"],
-         [PyTango.DevVoid, "none"],{ 'Display level': PyTango.DispLevel.EXPERT,}],
+         [PyTango.DevVoid, "none"], {'Display level': PyTango.DispLevel.EXPERT, }],
         'GetInfo':
         [[PyTango.DevVoid, "none"],
          [PyTango.DevString, "Info string returned by the axis"]],
         'RawCom':
         [[PyTango.DevString, "Raw command to be send to the axis. Be carefull!"],
          [PyTango.DevString, "Answer provided by the axis"],
-         { 'Display level': PyTango.DispLevel.EXPERT, } ],
+         {'Display level': PyTango.DispLevel.EXPERT, }],
         'WaitMove':
         [[PyTango.DevVoid, "none"],
          [PyTango.DevVoid, "none"]],
@@ -701,8 +697,6 @@ def delete_unused_emotion_axes():
     """
     Removes Emotion axes that are not running.
     """
-    db = PyTango.Database()
-
     # get EmotionAxis (only from current instance).
     emotion_axis_device_names = get_devices_from_server().get('EmotionAxis')
     emotion.log.info("Axes: %r" % emotion_axis_device_names)
@@ -748,7 +742,10 @@ def main():
         device_list = get_devices_from_server().get('Emotion')
         _device = device_list[0]
         print "Emotion.py - Found device : ", _device
-        _config_file = db.get_device_property(_device, "config_file")["config_file"][0]
+        _config_file = db.get_device_property(
+            _device, "config_file")[
+            "config_file"][
+            0]
         print "Emotion.py - config file: ", _config_file
 
         py.add_class(EmotionClass, Emotion)
@@ -756,44 +753,41 @@ def main():
 
         U = PyTango.Util.instance()
 
-
         TgGevent.execute(emotion.load_cfg, _config_file)
 
         # Get axis names defined in config file.
         axis_names = emotion.config.axis_names_list()
-        print  "axis names:", axis_names
+        print "axis names:", axis_names
 
         # Takes the 1st one.
         axis_name = axis_names[0]
         _axis = TgGevent.get_proxy(emotion.get_axis, axis_name)
 
         # Search for custom commands.
-        _cmd_list =_axis.get_custom_methods_list()
+        _cmd_list = _axis.get_custom_methods_list()
         print "Emotion.py - '%s' custom commands:" % axis_name
 
-
-        types_conv_tab = dict()
-        types_conv_tab['Void']   = PyTango.DevVoid
-        types_conv_tab['String'] = PyTango.DevString
-        types_conv_tab['Long']   = PyTango.DevLong
+        types_conv_tab = {
+            None: PyTango.DevVoid, str: PyTango.DevString, int: PyTango.
+            DevLong, float: PyTango.DevDouble}
 
         # Adds custom methods:
-        for (fff, fname, (t1, t2)) in _cmd_list:
+        for (fname, (t1, t2)) in _cmd_list:
             print "   ", fname
-            setattr(EmotionAxis, fname, fff)
-            tin  = types_conv_tab[t1]
+            setattr(EmotionAxis, fname, types.MethodType(
+                getattr(_axis, fname), EmotionAxis))
+            tin = types_conv_tab[t1]
             tout = types_conv_tab[t2]
-            EmotionAxisClass.cmd_list.update({fname:  [[tin, ""], [tout, ""]]})
+            EmotionAxisClass.cmd_list.update({fname: [[tin, ""], [tout, ""]]})
 
         U.server_init()
 
-    except PyTango.DevFailed, e:
+    except PyTango.DevFailed:
         print traceback.format_exc()
         emotion.log.exception(
             "Error in server initialization",
             raise_exception=False)
         sys.exit(0)
-
 
     try:
         emotion_admin_device_names = get_devices_from_server().get('Emotion')
@@ -820,7 +814,7 @@ def main():
             print "-----------"
             emotion.log.error("No emotion supervisor device",
                               raise_exception=False)
-    except PyTango.DevFailed, e:
+    except PyTango.DevFailed:
         print traceback.format_exc()
         emotion.log.exception(
             "Error in devices initialization",
@@ -831,4 +825,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
