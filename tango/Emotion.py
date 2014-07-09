@@ -13,6 +13,22 @@ import time
 import types
 
 
+def E_error(msg, raise_exception=True, exception=RuntimeError):
+    emotion.log.error("[EmotionDS] " + msg, raise_exception, exception)
+
+
+def E_info(msg):
+    emotion.log.info("[EmotionDS] " + msg)
+
+
+def E_debug(msg):
+    emotion.log.debug("[EmotionDS] " + msg)
+
+
+def E_exception(msg):
+    emotion.log.exception("[EmotionDS] " + msg)
+
+
 class Emotion(PyTango.Device_4Impl):
 
     def __init__(self, cl, name):
@@ -91,8 +107,8 @@ class EmotionAxis(PyTango.Device_4Impl):
 
         self.attr_Home_position_read = 0.0
         self.attr_StepSize_read = 0.0
-        """
         self.attr_Steps_per_unit_read = 0.0
+        """
         self.attr_Steps_read = 0
         self.attr_Position_read = 0.0
         self.attr_Measured_Position_read = 0.0
@@ -121,43 +137,8 @@ class EmotionAxis(PyTango.Device_4Impl):
                 # Velocity
                 attr = self.get_device_attr().get_attr_by_name("Velocity")
                 attr.set_write_value(self.axis.velocity())
-
-                # Acceleration
-                try:
-                    _acc = self.axis.acceleration()
-                    attr = self.get_device_attr().get_attr_by_name(
-                        "Acceleration")
-                    attr.set_write_value(float(_acc))
-                except:
-                    emotion.log.error(
-                        "No acceleration for axis %s" %
-                        self._axis_name,
-                        raise_exception=False)
-
-                # Steps_per_unit
-                try:
-                    _spu = float(self.axis.steps_per_unit())
-                    attr = self.get_device_attr().get_attr_by_name(
-                        "Steps_per_unit")
-                    attr.set_write_value(_spu)
-                except:
-                    emotion.log.error(
-                        "No steps per unit for axis %s" %
-                        self._axis_name,
-                        raise_exception=False)
-
-                # Steps
-                try:
-                    _steps = int(round(self.axis.position() * _spu))
-                    attr = self.get_device_attr().get_attr_by_name("Steps")
-                    attr.set_write_value(_steps)
-                except:
-                    emotion.log.error(
-                        "No steps defined for axis %s" %
-                        self._axis_name,
-                        raise_exception=False)
             except:
-                emotion.log.exception(
+                E_exception(
                     "Cannot set one of the attributes write value")
             finally:
                 self.once = True
@@ -199,7 +180,7 @@ class EmotionAxis(PyTango.Device_4Impl):
     def write_Steps_per_unit(self, attr):
         self.debug_stream("In write_Steps_per_unit()")
         # data = attr.get_write_value()
-        emotion.log.debug("Not implemented")
+        E_debug("Not implemented")
 
     def read_Steps(self, attr):
         self.debug_stream("In read_Steps()")
@@ -247,7 +228,7 @@ class EmotionAxis(PyTango.Device_4Impl):
             self.debug_stream("In read_Acceleration(%f)" % float(_acc))
             attr.set_value(_acc)
         except:
-            # emotion.log.exception("Unable to read acceleration for this axis")
+            # E_exception("Unable to read acceleration for this axis")
             pass
 
     def write_Acceleration(self, attr):
@@ -256,7 +237,7 @@ class EmotionAxis(PyTango.Device_4Impl):
             self.debug_stream("In write_Acceleration(%f)" % data)
             self.axis.acceleration(data)
         except:
-            emotion.log.exception("Unable to write acceleration for this axis")
+            E_exception("Unable to write acceleration for this axis")
 
     def read_AccTime(self, attr):
         self.debug_stream("In read_AccTime()")
@@ -494,10 +475,10 @@ class EmotionAxisClass(PyTango.DeviceClass):
           PyTango.SCALAR,
           PyTango.READ],
          {
-             'label': "Steps per mm",
-             'unit': "steps/mm",
+             'label': "Steps per user unit",
+             'unit': "steps/uu",
              'format': "%7.1f",
-             'Display level': PyTango.DispLevel.EXPERT,
+             # 'Display level': PyTango.DispLevel.EXPERT,
          }],
         'Steps':
         [[PyTango.DevLong,
@@ -515,9 +496,9 @@ class EmotionAxisClass(PyTango.DeviceClass):
           PyTango.READ_WRITE],
          {
              'label': "Position",
-             'unit': "mm",
+             'unit': "uu",
              'format': "%10.3f",
-             'description': "The desired motor position.",
+             'description': "The desired motor position in user units.",
          }],
         'Measured_Position':
         [[PyTango.DevDouble,
@@ -525,9 +506,9 @@ class EmotionAxisClass(PyTango.DeviceClass):
           PyTango.READ],
          {
              'label': "Measured position",
-             'unit': "mm",
+             'unit': "uu",
              'format': "%10.3f",
-             'description': "The measured motor position.",
+             'description': "The measured motor position in user units.",
          }],
         'Acceleration':
         [[PyTango.DevDouble,
@@ -550,7 +531,6 @@ class EmotionAxisClass(PyTango.DeviceClass):
              'format': "%10.6f",
              'description': "The acceleration time of the motor.",
              'Display level': PyTango.DispLevel.EXPERT,
-             'Memorized': "true"
          }],
         'Velocity':
         [[PyTango.DevDouble,
@@ -562,7 +542,6 @@ class EmotionAxisClass(PyTango.DeviceClass):
              'format': "%10.3f",
              'description': "The constant velocity of the motor.",
              #                'Display level': PyTango.DispLevel.EXPERT,
-             'Memorized': "true"
          }],
         'Backlash':
         [[PyTango.DevDouble,
@@ -570,11 +549,10 @@ class EmotionAxisClass(PyTango.DeviceClass):
           PyTango.READ_WRITE],
          {
              'label': "Backlash",
-             'unit': "mm",
+             'unit': "uu",
              'format': "%5.3f",
              'description': "Backlash to be applied to each motor movement",
              'Display level': PyTango.DispLevel.EXPERT,
-             'Memorized': "true"
          }],
         'Home_position':
         [[PyTango.DevDouble,
@@ -582,11 +560,10 @@ class EmotionAxisClass(PyTango.DeviceClass):
           PyTango.READ_WRITE],
          {
              'label': "Home position",
-             'unit': "mm",
+             'unit': "uu",
              'format': "%7.3f",
              'description': "Position of the home switch",
              'Display level': PyTango.DispLevel.EXPERT,
-             'Memorized': "true"
          }],
         'HardLimitLow':
         [[PyTango.DevBoolean,
@@ -608,7 +585,7 @@ class EmotionAxisClass(PyTango.DeviceClass):
           PyTango.READ_WRITE],
          {
              'label': "Preset Position",
-             'unit': "mm",
+             'unit': "uu",
              'format': "%10.3f",
              'description': "preset the position in the step counter",
              'Display level': PyTango.DispLevel.EXPERT,
@@ -624,7 +601,6 @@ class EmotionAxisClass(PyTango.DeviceClass):
              'description': "number of unit/s for the first step and for \
              the move reference",
              'Display level': PyTango.DispLevel.EXPERT,
-             'Memorized': "true"
          }],
         'Home_side':
         [[PyTango.DevBoolean,
@@ -639,7 +615,7 @@ class EmotionAxisClass(PyTango.DeviceClass):
           PyTango.SCALAR,
           PyTango.READ_WRITE],
          {
-             'unit': "mm",
+             'unit': "uu",
              'format': "%10.3f",
              'description': "Size of the relative step performed by the \
              StepUp and StepDown commands.\nThe StepSize\
@@ -687,7 +663,7 @@ def delete_emotion_axes():
     emotion_axis_device_names = get_devices_from_server().get('EmotionAxis')
 
     for _axis_device_name in emotion_axis_device_names:
-        emotion.log.info(
+        E_info(
             "Deleting existing Emotion axis: %s" %
             _axis_device_name)
         db.delete_device(_axis_device_name)
@@ -699,14 +675,14 @@ def delete_unused_emotion_axes():
     """
     # get EmotionAxis (only from current instance).
     emotion_axis_device_names = get_devices_from_server().get('EmotionAxis')
-    emotion.log.info("Axes: %r" % emotion_axis_device_names)
+    E_info("Axes: %r" % emotion_axis_device_names)
 
 
 def main():
     try:
         delete_unused_emotion_axes()
     except:
-        emotion.log.error(
+        E_error(
             "Cannot delete unused emotion axes.",
             raise_exception=False)
 
@@ -733,20 +709,24 @@ def main():
             else:
                 emotion.log.level(10)
         else:
-            emotion.log.level(50)
+            # by default : show INFO
+            emotion.log.level(20)
             tango_log_level = 0
 
-        emotion.log.info("tango log level=%d" % tango_log_level)
+        E_info("tango log level=%d" % tango_log_level)
+        E_debug("Emotion.py debug message")
+        E_error("Emotion.py error message", raise_exception=False)
 
+        # Searches for emotion devices defined in tango database.
         db = py.instance().get_database()
         device_list = get_devices_from_server().get('Emotion')
         _device = device_list[0]
-        print "Emotion.py - Found device : ", _device
+        E_debug("Emotion.py - Found device : %s" % _device)
         _config_file = db.get_device_property(
             _device, "config_file")[
             "config_file"][
             0]
-        print "Emotion.py - config file: ", _config_file
+        E_info("Emotion.py - config file : %s" % _config_file)
 
         py.add_class(EmotionClass, Emotion)
         py.add_class(EmotionAxisClass, EmotionAxis)
@@ -757,34 +737,38 @@ def main():
 
         # Get axis names defined in config file.
         axis_names = emotion.config.axis_names_list()
-        print "axis names:", axis_names
+        E_debug("axis names list : %s" % axis_names)
 
-        # Takes the 1st one.
+        # Takes one axis...
         axis_name = axis_names[0]
         _axis = TgGevent.get_proxy(emotion.get_axis, axis_name)
 
-        # Search for custom commands.
-        _cmd_list = _axis.custom_methods_list()
-        print "Emotion.py - '%s' custom commands:" % axis_name
-
         types_conv_tab = {
-            None: PyTango.DevVoid, str: PyTango.DevString, int: PyTango.
-            DevLong, float: PyTango.DevDouble}
+            None: PyTango.DevVoid,
+            str: PyTango.DevString,
+            int: PyTango.DevLong,
+            float: PyTango.DevDouble}
 
-        # Adds custom methods:
+        # Search and adds custom commands.
+        _cmd_list = _axis.custom_methods_list()
+        E_debug("Emotion.py - '%s' custom commands:" % axis_name)
         for (fname, (t1, t2)) in _cmd_list:
-            print "   ", fname
-            setattr(EmotionAxis, fname, types.MethodType(
-                getattr(_axis, fname), EmotionAxis))
+            # adding a method should be like that but does not work :(
+            # setattr(EmotionAxis, fname, types.MethodType(getattr(_axis, fname), None, EmotionAxis) )
+
+            # ugly verison by CG... MG has not benn involved in such crappy code (but it works:))
+            setattr(EmotionAxis, fname, getattr(_axis, fname))
+
             tin = types_conv_tab[t1]
             tout = types_conv_tab[t2]
             EmotionAxisClass.cmd_list.update({fname: [[tin, ""], [tout, ""]]})
+            E_debug("   %s (in: %s, %s) (out: %s, %s)" % (fname, t1, tin, t2, tout))
 
         U.server_init()
 
     except PyTango.DevFailed:
         print traceback.format_exc()
-        emotion.log.exception(
+        E_exception(
             "Error in server initialization",
             raise_exception=False)
         sys.exit(0)
@@ -802,8 +786,7 @@ def main():
                                         axis_name))
 
                 try:
-                    print "Emotion.py - Creating %s" % device_name
-                    emotion.log.info("Creating %s" % device_name)
+                    E_debug("Emotion.py - Creating %s" % device_name)
                     U.create_device('EmotionAxis', device_name)
                 except PyTango.DevFailed:
                     # print traceback.format_exc()
@@ -811,12 +794,11 @@ def main():
         else:
             # Do not raise exception to be able to use
             # Jive device creation wizard.
-            print "-----------"
-            emotion.log.error("No emotion supervisor device",
+            E_error("No emotion supervisor device",
                               raise_exception=False)
     except PyTango.DevFailed:
         print traceback.format_exc()
-        emotion.log.exception(
+        E_exception(
             "Error in devices initialization",
             raise_exception=False)
         sys.exit(0)
