@@ -3,6 +3,7 @@ __package__ = 'emotion.axis'
 from ..task_utils import *
 from ..config.static import StaticConfig
 from ..settings import AxisSettings
+from .. import event
 import time
 
 READY, MOVING, FAULT, UNKNOWN, OFF = (
@@ -272,6 +273,7 @@ class Axis(object):
 
     def _set_move_done(self, move_task):
         self.__move_done.set()
+        event.send(self, "move_done", True)
 
     def _check_ready(self):
         initial_state = self.state()
@@ -286,6 +288,7 @@ class Axis(object):
 
         # indicates that axis is MOVING.
         self.__move_done.clear()
+        event.send(self, "move_done", False)
 
         move_task = self._do_move(motion, wait=False)
         move_task.link(self._set_move_done)
