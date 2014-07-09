@@ -1,5 +1,6 @@
 __package__ = 'emotion.axis'
 
+import emotion
 from ..task_utils import *
 from ..config.static import StaticConfig
 from ..settings import AxisSettings
@@ -7,6 +8,18 @@ import time
 
 READY, MOVING, FAULT, UNKNOWN, OFF = (
     "READY", "MOVING", "FAULT", "UNKNOWN", "OFF")
+
+
+def axis_err(msg):
+    emotion.log.error("[AXIS] " + msg)
+
+
+def axis_info(msg):
+    emotion.log.info("[AXIS] " + msg)
+
+
+def axis_debug(msg):
+    emotion.log.debug("[AXIS] " + msg)
 
 
 class Motion(object):
@@ -148,7 +161,8 @@ class Axis(object):
                     steps_per_unit())
                 return self.position()
         else:
-            return (self.__controller.read_position(self, measured) / self.steps_per_unit()) - self.offset
+            return (self.__controller.read_position(self, measured) /
+                    self.steps_per_unit()) - self.offset
 
     def state(self):
         if self.is_moving:
@@ -216,7 +230,8 @@ class Axis(object):
 
             if motion.backlash:
                 # axis has moved to target pos - backlash;
-                # now do the final motion to reach original target
+                # now do the final motion (backlash) to reach original target.
+                axis_debug("doing backlash (%g)" % motion.backlash)
                 final_pos = motion.target_pos + motion.backlash
                 backlash_motion = Motion(self, final_pos, motion.backlash)
                 self.__controller.prepare_move(backlash_motion)
@@ -225,6 +240,8 @@ class Axis(object):
 
     def prepare_move(self, user_target_pos, relative=False):
         initial_pos = self.position()
+        axis_debug("prepare_move : user_target_pos=%g intitial_pos=%g relative=%s" %
+                   (user_target_pos, initial_pos, relative))
         if relative:
             user_target_pos += initial_pos
         user_backlash = self.config.get("backlash", float, 0)
