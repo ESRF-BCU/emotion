@@ -718,7 +718,8 @@ def main():
         E_error("Emotion.py error message", raise_exception=False)
 
         # Searches for emotion devices defined in tango database.
-        db = py.instance().get_database()
+        U = PyTango.Util.instance()
+        db = U.get_database()
         device_list = get_devices_from_server().get('Emotion')
 
         if device_list is not None:
@@ -738,8 +739,6 @@ def main():
 
         py.add_class(EmotionClass, Emotion)
         py.add_class(EmotionAxisClass, EmotionAxis)
-
-        U = PyTango.Util.instance()
 
         if not first_run:
             TgGevent.execute(emotion.load_cfg, _config_file)
@@ -773,6 +772,7 @@ def main():
                 EmotionAxisClass.cmd_list.update({fname: [[tin, ""], [tout, ""]]})
                 E_debug("   %s (in: %s, %s) (out: %s, %s)" % (fname, t1, tin, t2, tout))
 
+
         U.server_init()
 
     except PyTango.DevFailed:
@@ -793,10 +793,14 @@ def main():
                 device_name = '/'.join((blname,
                                         '%s_%s' % (server_name, device_number),
                                         axis_name))
-
+                try:
+                    db.get_device_alias(axis_name)
+                    alias = None
+                except PyTango.DevFailed:
+                    alias = axis_name
                 try:
                     E_debug("Emotion.py - Creating %s" % device_name)
-                    U.create_device('EmotionAxis', device_name)
+                    U.create_device('EmotionAxis', device_name, alias=alias)
                 except PyTango.DevFailed:
                     # print traceback.format_exc()
                     pass
