@@ -764,7 +764,8 @@ def main():
                 # adding a method should be like that but does not work :(
                 # setattr(EmotionAxis, fname, types.MethodType(getattr(_axis, fname), None, EmotionAxis) )
 
-                # ugly verison by CG... MG has not benn involved in such crappy code (but it works:))
+                # ugly verison by CG...
+                # NOTE: MG has not benn involved in such crappy code (but it quite works :) )
                 setattr(EmotionAxis, fname, getattr(_axis, fname))
 
                 tin = types_conv_tab[t1]
@@ -794,16 +795,20 @@ def main():
                                         '%s_%s' % (server_name, device_number),
                                         axis_name))
                 try:
-                    db.get_device_alias(axis_name)
-                    alias = None
-                except PyTango.DevFailed:
-                    alias = axis_name
-                try:
-                    E_debug("Emotion.py - Creating %s" % device_name)
-                    U.create_device('EmotionAxis', device_name, alias=alias)
+                    E_debug("Creating %s" % device_name)
+                    U.create_device('EmotionAxis', device_name)
                 except PyTango.DevFailed:
                     # print traceback.format_exc()
                     pass
+
+                # If axis name is not already a tango alias,
+                # define it as an alias of the device.
+                try:
+                    db.get_device_alias(axis_name)
+                except PyTango.DevFailed:
+                    E_debug("Creating alias %s for device %s" % (axis_name, device_name))
+                    db.put_device_alias(device_name, axis_name)
+
         else:
             # Do not raise exception to be able to use
             # Jive device creation wizard.
