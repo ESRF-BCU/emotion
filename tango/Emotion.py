@@ -718,7 +718,8 @@ def main():
         E_error("Emotion.py error message", raise_exception=False)
 
         # Searches for emotion devices defined in tango database.
-        db = py.instance().get_database()
+        U = PyTango.Util.instance()
+        db = U.get_database()
         device_list = get_devices_from_server().get('Emotion')
         _device = device_list[0]
         E_debug("Emotion.py - Found device : %s" % _device)
@@ -730,8 +731,6 @@ def main():
 
         py.add_class(EmotionClass, Emotion)
         py.add_class(EmotionAxisClass, EmotionAxis)
-
-        U = PyTango.Util.instance()
 
         TgGevent.execute(emotion.load_cfg, _config_file)
 
@@ -784,7 +783,7 @@ def main():
                 device_name = '/'.join((blname,
                                         '%s_%s' % (server_name, device_number),
                                         axis_name))
-
+                
                 try:
                     E_debug("Emotion.py - Creating %s" % device_name)
                     U.create_device('EmotionAxis', device_name)
