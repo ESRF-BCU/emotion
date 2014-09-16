@@ -21,6 +21,7 @@ doc:
 	cd doc
 	make html
 
+
 # Removes links
 clean:
 	rm -rf *.pyc *~
