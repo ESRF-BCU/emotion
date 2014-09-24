@@ -12,22 +12,7 @@ import os
 import time
 import types
 
-
-def E_error(msg, raise_exception=True, exception=RuntimeError):
-    emotion.log.error("[EmotionDS] " + msg, raise_exception, exception)
-
-
-def E_info(msg):
-    emotion.log.info("[EmotionDS] " + msg)
-
-
-def E_debug(msg):
-    emotion.log.debug("[EmotionDS] " + msg)
-
-
-def E_exception(msg):
-    emotion.log.exception("[EmotionDS] " + msg)
-
+import emotion.log as elog
 
 class Emotion(PyTango.Device_4Impl):
 
@@ -138,7 +123,7 @@ class EmotionAxis(PyTango.Device_4Impl):
                 attr = self.get_device_attr().get_attr_by_name("Velocity")
                 attr.set_write_value(self.axis.velocity())
             except:
-                E_exception(
+                elog.exception(
                     "Cannot set one of the attributes write value")
             finally:
                 self.once = True
@@ -180,7 +165,7 @@ class EmotionAxis(PyTango.Device_4Impl):
     def write_Steps_per_unit(self, attr):
         self.debug_stream("In write_Steps_per_unit()")
         # data = attr.get_write_value()
-        E_debug("Not implemented")
+        elog.debug("Not implemented")
 
     def read_Steps(self, attr):
         self.debug_stream("In read_Steps()")
@@ -228,7 +213,7 @@ class EmotionAxis(PyTango.Device_4Impl):
             self.debug_stream("In read_Acceleration(%f)" % float(_acc))
             attr.set_value(_acc)
         except:
-            # E_exception("Unable to read acceleration for this axis")
+            # elog.exception("Unable to read acceleration for this axis")
             pass
 
     def write_Acceleration(self, attr):
@@ -237,7 +222,7 @@ class EmotionAxis(PyTango.Device_4Impl):
             self.debug_stream("In write_Acceleration(%f)" % data)
             self.axis.acceleration(data)
         except:
-            E_exception("Unable to write acceleration for this axis")
+            elog.exception("Unable to write acceleration for this axis")
 
     def read_AccTime(self, attr):
         self.debug_stream("In read_AccTime()")
@@ -663,9 +648,8 @@ def delete_emotion_axes():
     emotion_axis_device_names = get_devices_from_server().get('EmotionAxis')
 
     for _axis_device_name in emotion_axis_device_names:
-        E_info(
-            "Deleting existing Emotion axis: %s" %
-            _axis_device_name)
+        elog.info("Deleting existing Emotion axis: %s" %
+               _axis_device_name)
         db.delete_device(_axis_device_name)
 
 
@@ -675,14 +659,14 @@ def delete_unused_emotion_axes():
     """
     # get EmotionAxis (only from current instance).
     emotion_axis_device_names = get_devices_from_server().get('EmotionAxis')
-    E_info("Axes: %r" % emotion_axis_device_names)
+    elog.info("Axes: %r" % emotion_axis_device_names)
 
 
 def main():
     try:
         delete_unused_emotion_axes()
     except:
-        E_error(
+        elog.error(
             "Cannot delete unused emotion axes.",
             raise_exception=False)
 
@@ -701,21 +685,21 @@ def main():
                 print "Emotion.py - EMOTION ERROR LOG LEVEL"
 
             if tango_log_level == 1:
-                emotion.log.level(40)
+                elog.level(40)
             elif tango_log_level == 2:
-                emotion.log.level(30)
+                elog.level(30)
             elif tango_log_level == 3:
-                emotion.log.level(20)
+                elog.level(20)
             else:
-                emotion.log.level(10)
+                elog.level(10)
         else:
             # by default : show INFO
-            emotion.log.level(20)
+            elog.level(20)
             tango_log_level = 0
 
-        E_info("tango log level=%d" % tango_log_level)
-        E_debug("Emotion.py debug message")
-        E_error("Emotion.py error message", raise_exception=False)
+        #elog.info("tango log level=%d" % tango_log_level)
+        #elog.debug("Emotion.py debug message")
+        #elog.error("Emotion.py error message", raise_exception=False)
 
         # Searches for emotion devices defined in tango database.
         U = PyTango.Util.instance()
@@ -724,17 +708,17 @@ def main():
 
         if device_list is not None:
             _device = device_list[0]
-            E_debug("Emotion.py - Found device : %s" % _device)
+            elog.debug("Emotion.py - Found device : %s" % _device)
             _config_file = db.get_device_property(
                 _device, "config_file")[
                 "config_file"][
                 0]
-            E_info("Emotion.py - config file : %s" % _config_file)
+            elog.info("Emotion.py - config file : %s" % _config_file)
             first_run = False
         else:
-            print "[FIRST RUN] New server never started ? -> no database entry..."
-            print "[FIRST RUN] NO CUSTOM COMANDS :( "
-            print "[FIRST RUN] Restart DS to havec CUSTOM COMMANDS"
+            elog.error("[FIRST RUN] New server never started ? -> no database entry...")
+            elog.error("[FIRST RUN] NO CUSTOM COMANDS :( ")
+            elog.error("[FIRST RUN] Restart DS to havec CUSTOM COMMANDS")
             first_run = True
 
         py.add_class(EmotionClass, Emotion)
@@ -745,7 +729,8 @@ def main():
 
             # Get axis names defined in config file.
             axis_names = emotion.config.axis_names_list()
-            E_debug("axis names list : %s" % axis_names)
+            elog.debug("axis names list : %s" % axis_names)
+
 
             for axis_name in axis_names:
                 _axis = TgGevent.get_proxy(emotion.get_axis, axis_name)
@@ -786,9 +771,8 @@ def main():
 
     except PyTango.DevFailed:
         print traceback.format_exc()
-        E_exception(
-            "Error in server initialization",
-            raise_exception=False)
+        elog.exception(
+            "Error in server initialization")
         sys.exit(0)
 
     try:
@@ -803,8 +787,7 @@ def main():
                                         '%s_%s' % (server_name, device_number),
                                         axis_name))
                 try:
-                    E_debug("Creating %s" % device_name)
-                    U.create_device('EmotionAxis', device_name)
+                    elog.debug("Creating %s" % device_name)
 
                     U.create_device("EmotionAxis_%s" % axis_name, device_name)
 
@@ -817,19 +800,18 @@ def main():
                 try:
                     db.get_device_alias(axis_name)
                 except PyTango.DevFailed:
-                    E_debug("Creating alias %s for device %s" % (axis_name, device_name))
+                    elog.debug("Creating alias %s for device %s" % (axis_name, device_name))
                     db.put_device_alias(device_name, axis_name)
 
         else:
             # Do not raise exception to be able to use
             # Jive device creation wizard.
-            E_error("No emotion supervisor device",
+            elog.error("No emotion supervisor device",
                               raise_exception=False)
     except PyTango.DevFailed:
         print traceback.format_exc()
-        E_exception(
-            "Error in devices initialization",
-            raise_exception=False)
+        elog.exception(
+            "Error in devices initialization")
         sys.exit(0)
 
     U.server_run()
