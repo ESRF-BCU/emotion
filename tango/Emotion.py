@@ -709,16 +709,13 @@ def main():
         if device_list is not None:
             _device = device_list[0]
             elog.debug("Emotion.py - Found device : %s" % _device)
-            _config_file = db.get_device_property(
-                _device, "config_file")[
-                "config_file"][
-                0]
+            _config_file = db.get_device_property(_device, "config_file")["config_file"][0]
             elog.info("Emotion.py - config file : %s" % _config_file)
             first_run = False
         else:
-            elog.error("[FIRST RUN] New server never started ? -> no database entry...")
-            elog.error("[FIRST RUN] NO CUSTOM COMANDS :( ")
-            elog.error("[FIRST RUN] Restart DS to havec CUSTOM COMMANDS")
+            elog.error("[FIRST RUN] New server never started ? -> no database entry...", raise_exception= False)
+            elog.error("[FIRST RUN] NO CUSTOM COMANDS :( ", raise_exception= False)
+            elog.error("[FIRST RUN] Restart DS to havec CUSTOM COMMANDS", raise_exception= False)
             first_run = True
 
         py.add_class(EmotionClass, Emotion)
