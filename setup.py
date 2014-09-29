@@ -4,4 +4,4 @@ setup(name="emotion", version="0.1",
       description="ESRF Motion library",
       author="M. Guijarro, M. Perez (ESRF)",
       package_dir={"emotion": "emotion"},
-      packages=["emotion", 'emotion.controllers', 'emotion.controllers.icepap_utils', 'emotion.controllers.icepap_utils.deep', 'emotion.config', 'emotion.comm'])  # , "cool.control_objects"])
+      packages=["emotion", 'emotion.controllers', 'emotion.controllers.libicepap', 'emotion.controllers.libicepap.deep', 'emotion.config', 'emotion.comm']) 
