@@ -1,4 +1,5 @@
-from emotion import Controller, log
+from emotion import Controller
+from emotion import log as elog
 from emotion.axis import READY, MOVING
 from emotion.controller import add_axis_method
 import math
@@ -11,19 +12,7 @@ SetPoint.py : a 'setpoint' controller for emotion.
 It is a close copy of mockup controller.
 To drive a setpoint as an emotion motor.
 Used as rampe generator for hexapiezo for example.
-
 """
-
-def setpoint_err(msg):
-    log.error("[SETPOINT] " + msg)
-
-
-def setpoint_info(msg):
-    log.info("[SETPOINT] " + msg)
-
-
-def setpoint_debug(msg):
-    log.debug("[SETPOINT] " + msg)
 
 
 class setpoint(Controller):
@@ -120,13 +109,6 @@ class setpoint(Controller):
 
                 self._target_attribute.write(_end_pos)
                 return _end_pos
-
-    #def set_position(self, axis, new_pos):
-    #    self._axis_moves[axis]["end_pos"] = new_pos
-    #    self._axis_moves[axis]["end_t"] = 0
-    #    return new_pos
-
-
 
     def read_velocity(self, axis):
         """
