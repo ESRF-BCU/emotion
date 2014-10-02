@@ -1,0 +1,23 @@
+<config>
+  <controller class="PI_E517" name="idXX_mono">
+    <host value="192.168.1.10" />
+    <axis name="xxxx">
+      <channel value="1" />
+      <chan_letter value="A" />
+      <velocity value="10" />
+      <steps_per_unit value="1" />
+    </axis>
+    <axis name="yyyy">
+      <channel value="2" />
+      <chan_letter value="B" />
+      <velocity value="10" />
+      <steps_per_unit value="1" />
+    </axis>
+    <axis name="zzzz">
+      <channel value="3" />
+      <chan_letter value="C" />
+      <velocity value="10" />
+      <steps_per_unit value="1" />
+    </axis>
+  </controller>
+</config>
