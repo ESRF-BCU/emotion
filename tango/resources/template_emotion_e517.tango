@@ -1,0 +1,10 @@
+
+Emotion/e517_mono/DEVICE/Emotion: "id42/emotion/e517mono"
+
+id42/emotion/e517mono->config_file: "/users/blissadm/local/userconf/emotion/e517_config.xml"
+
+Emotion/e517_mono/DEVICE/EmotionAxis: "id42/emotion_e517mono/xxxx",\ 
+                                      "id42/emotion_e517mono/yyyy",\ 
+                                      "id42/emotion_e517mono/zzzz"
+
+
