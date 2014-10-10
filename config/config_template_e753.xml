@@ -1,0 +1,9 @@
+<config>
+  <controller class="PI_E753" name="idXX_mirror">
+    <host value="192.168.2.10" />
+    <axis name="mirror_piezo">
+       <steps_per_unit value="1" />
+    </axis>
+  </controller>
+</config>
+
