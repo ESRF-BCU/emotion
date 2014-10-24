@@ -7,7 +7,6 @@ from ..settings import AxisSettings
 from .. import event
 import time
 import gevent
-import signal
 
 READY, MOVING, FAULT, UNKNOWN, OFF = (
     "READY", "MOVING", "FAULT", "UNKNOWN", "OFF")
@@ -52,7 +51,6 @@ class Axis(object):
         self.__move_done.set()
         self.__custom_methods_list = list()
         self.__move_task = None
-        self.__sigint_handler = gevent.signal(signal.SIGINT, self._handle_sigint)
 
     @property
     def name(self):
