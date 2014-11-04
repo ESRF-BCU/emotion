@@ -94,7 +94,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_Home_position_read = 0.0
         self.attr_StepSize_read = 0.0
         self.attr_Steps_per_unit_read = 0.0
-        self.attr_Acceleration_read = 0.0
+        self.attr_Acceleration_read = 1.0
 
         """
         self.attr_Steps_read = 0
@@ -140,7 +140,6 @@ class EmotionAxis(PyTango.Device_4Impl):
         :rtype: PyTango.CmdArgType.DevState """
         self.debug_stream("In dev_state()")
         argout = PyTango.DevState.UNKNOWN
-        # ----- PROTECTED REGION ID(TOTO.State) ENABLED START -----#
 
         try:
             _state = self.axis.state()
@@ -155,9 +154,11 @@ class EmotionAxis(PyTango.Device_4Impl):
             self.set_state(PyTango.DevState.FAULT)
             self.set_status(traceback.format_exc())
 
-        # ----- PROTECTED REGION END -----#      //      TOTO.State
+
         if argout != PyTango.DevState.ALARM:
             PyTango.Device_4Impl.dev_state(self)
+
+        # print "dev_state %s" % self.get_state()
         return self.get_state()
 
     def read_Steps_per_unit(self, attr):
@@ -528,9 +529,9 @@ class EmotionAxisClass(PyTango.DeviceClass):
           PyTango.READ_WRITE],
          {
              'label': "Acceleration",
-             'unit': "units/s^2",
+             'unit': "user units/s^2",
              'format': "%10.3f",
-             'description': "The acceleration of the motor.",
+             'description': "Acceleration of the motor in uu/s2",
              'Display level': PyTango.DispLevel.EXPERT,
         }],
         'AccTime':
@@ -541,7 +542,7 @@ class EmotionAxisClass(PyTango.DeviceClass):
              'label': "Acceleration Time",
              'unit': "s",
              'format': "%10.6f",
-             'description': "The acceleration time of the motor.",
+             'description': "The acceleration time of the motor (in seconds).",
              'Display level': PyTango.DispLevel.EXPERT,
         }],
         'Velocity':
@@ -754,6 +755,7 @@ def main():
             except:
                 elog.error("error (not present or syntax error?) in reading config file : %s" %
                            _config_file, raise_exception=False)
+                print traceback.format_exc()
                 sys.exit(-1)
 
             # Get axis names defined in config file.
