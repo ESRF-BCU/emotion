@@ -420,6 +420,9 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.debug_stream("In GetInfo()")
         return self.axis.get_info()
 
+    def ReadConfig(self, argin):
+        return str(getattr(self.axis, argin)(from_config=True))
+
     def RawWrite(self, argin):
         """ Sends a raw command to the axis. Be carefull!
 
@@ -499,6 +502,9 @@ class EmotionAxisClass(PyTango.DeviceClass):
         'WaitMove':
         [[PyTango.DevVoid, "none"],
          [PyTango.DevVoid, "none"]],
+        'ReadConfig':
+        [[PyTango.DevString, "Parameter name"],
+         [PyTango.DevString, "Configuration value"]]
     }
 
     #    Attribute definitions
