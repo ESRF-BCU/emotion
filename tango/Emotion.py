@@ -154,7 +154,6 @@ class EmotionAxis(PyTango.Device_4Impl):
             self.set_state(PyTango.DevState.FAULT)
             self.set_status(traceback.format_exc())
 
-
         if argout != PyTango.DevState.ALARM:
             PyTango.Device_4Impl.dev_state(self)
 
@@ -214,7 +213,6 @@ class EmotionAxis(PyTango.Device_4Impl):
                 return True
         except:
             print traceback.format_exc()
-
 
     def read_Measured_Position(self, attr):
         self.debug_stream("In read_Measured_Position()")
