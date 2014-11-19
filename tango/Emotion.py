@@ -181,11 +181,20 @@ class EmotionAxis(PyTango.Device_4Impl):
 
     def read_Position(self, attr):
         self.debug_stream("In read_Position()")
+        if self.axis.is_moving():
+            quality = PyTango.AttrQuality.ATTR_CHANGING
+        else:
+            quality = PyTango.AttrQuality.ATTR_VALID
         _t = time.time()
 
+        # updates value of "position" attribute.
         attr.set_value(self.axis.position())
-        # Updates "Write value" of Position attribute
+
+        # Updates "Write value" of Position attribute.
         attr.set_write_value(self.axis.position())
+
+        # ???
+        attr.set_value_date_quality(self.axis.position(), time.time(), quality)
 
         _duration = time.time() - _t
         if _duration > 0.05:
@@ -418,6 +427,9 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.debug_stream("In GetInfo()")
         return self.axis.get_info()
 
+    def ReadConfig(self, argin):
+        return self.axis.config().get(argin)
+
     def RawWrite(self, argin):
         """ Sends a raw command to the axis. Be carefull!
 
@@ -497,6 +509,9 @@ class EmotionAxisClass(PyTango.DeviceClass):
         'WaitMove':
         [[PyTango.DevVoid, "none"],
          [PyTango.DevVoid, "none"]],
+        'ReadConfig':
+        [[PyTango.DevString, "Parameter name"],
+         [PyTango.DevString, "Configuration value"]]
     }
 
     #    Attribute definitions
