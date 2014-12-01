@@ -1,6 +1,7 @@
 __package__ = 'emotion.axis'
 
 import emotion
+from emotion import log as elog
 from ..task_utils import *
 from ..config.static import StaticConfig
 from ..settings import AxisSettings
@@ -10,19 +11,6 @@ import gevent
 
 READY, MOVING, FAULT, UNKNOWN, OFF = (
     "READY", "MOVING", "FAULT", "UNKNOWN", "OFF")
-
-
-def axis_err(msg):
-    emotion.log.error("[AXIS] " + msg)
-
-
-def axis_info(msg):
-    emotion.log.info("[AXIS] " + msg)
-
-
-def axis_debug(msg):
-    emotion.log.debug("[AXIS] " + msg)
-
 
 class Motion(object):
 
@@ -195,6 +183,7 @@ class Axis(object):
                 curr_pos = self.__controller.read_position(self) / self.steps_per_unit
             except NotImplementedError:
                 curr_pos = 0
+            elog.debug("curr_pos=%g" % curr_pos)
             return self.dial2user(curr_pos)
 
     def state(self):
@@ -289,7 +278,7 @@ class Axis(object):
             if motion.backlash:
                 # axis has moved to target pos - backlash;
                 # now do the final motion (backlash) to reach original target.
-                axis_debug("doing backlash (%g)" % motion.backlash)
+                elog.debug("doing backlash (%g)" % motion.backlash)
                 final_pos = motion.target_pos + motion.backlash
                 backlash_motion = Motion(self, final_pos, motion.backlash)
                 self.__controller.prepare_move(backlash_motion)
@@ -314,12 +303,15 @@ class Axis(object):
         dial_target_pos = self.user2dial(user_target_pos)
         if abs(dial_target_pos - dial_initial_pos) < 1E-6:
             return
-        axis_debug("prepare_move : user_target_pos=%g dial_target_pos=%g dial_intial_pos=%g relative=%s" %
-                   (user_target_pos, dial_target_pos, dial_initial_pos, relative))
+
+        elog.debug("prepare_move : user_initial_pos=%g user_target_pos=%g dial_target_pos=%g dial_intial_pos=%g relative=%s" %
+                   (user_initial_pos, user_target_pos, dial_target_pos, dial_initial_pos, relative))
+
         user_backlash = self.config.get("backlash", float, 0)
         # all positions are converted to controller units
         backlash = user_backlash * self.steps_per_unit
-        delta = (dial_target_pos - dial_initial_pos) * self.steps_per_unit
+        delta_dial = dial_target_pos - dial_initial_pos
+        delta = self.dial2user(delta_dial * self.steps_per_unit)
         target_pos = dial_target_pos * self.steps_per_unit
 
         if backlash:
