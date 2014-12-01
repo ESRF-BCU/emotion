@@ -1,7 +1,6 @@
 import gevent
 import itertools
 from .task_utils import *
-from .config.static import StaticConfig
 from .axis import Axis, AxisRef, READY, MOVING, FAULT, UNKNOWN
 from . import event
 
@@ -31,6 +30,7 @@ class _Group(object):
 
     def __init__(self, name, config, axes):
         self.__name = name
+        from .config import StaticConfig
         self.__config = StaticConfig(config)
         self._axes = dict()
         self._motions_dict = dict()

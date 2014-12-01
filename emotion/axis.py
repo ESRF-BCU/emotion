@@ -3,7 +3,6 @@ __package__ = 'emotion.axis'
 import emotion
 from emotion import log as elog
 from ..task_utils import *
-from ..config.static import StaticConfig
 from ..settings import AxisSettings
 from .. import event
 import time
@@ -30,6 +29,7 @@ class Axis(object):
     def __init__(self, name, controller, config):
         self.__name = name
         self.__controller = controller
+        from ..config import StaticConfig
         self.__config = StaticConfig(config)
         self.__settings = AxisSettings(self) 
         self.__settings.set("offset", 0)
