@@ -46,10 +46,10 @@ class ControllerAxisSettings:
         self.axis_settings_dict = dict()
 
         from .. import config
+        global SETTINGS_WRITER_THREAD
+        global SETTINGS_WRITER_QUEUE
+        global SETTINGS_WRITER_WATCHER
         if config.BACKEND == 'xml':
-            global SETTINGS_WRITER_THREAD
-            global SETTINGS_WRITER_QUEUE
-            global SETTINGS_WRITER_WATCHER
             SETTINGS_WRITER_QUEUE = _threading.Queue()
             SETTINGS_WRITER_WATCHER = _threading.Event()
             SETTINGS_WRITER_WATCHER.set()
@@ -58,9 +58,6 @@ class ControllerAxisSettings:
                 SETTINGS_WRITER_THREAD = _threading.start_new_thread(
                     write_settings, ())
         else:
-            global SETTINGS_WRITER_THREAD
-            global SETTINGS_WRITER_QUEUE
-            global SETTINGS_WRITER_WATCHER
             SETTINGS_WRITER_QUEUE = gevent.queue.Queue()
             SETTINGS_WRITER_WATCHER = gevent.event.Event()
             SETTINGS_WRITER_WATCHER.set()
