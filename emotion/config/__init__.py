@@ -293,13 +293,13 @@ def load_cfg(filename, clear=True):
     Returns:
         None
     """
-    filename = os.path.abspath(filename)
 
     if clear:
         clear_cfg()
     if filename in LOADED_FILES:
         return
     if BACKEND == 'xml':
+        filename = os.path.abspath(filename)
         from .xml_backend import load_cfg
     elif BACKEND == 'beacon':
         from .beacon_backend import load_cfg
