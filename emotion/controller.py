@@ -2,7 +2,6 @@ __package__ = 'emotion.controller'
 
 import types
 import functools
-from ..config.static import StaticConfig
 from ..settings import ControllerAxisSettings
 from ..axis import AxisRef
 from ..group import Group
@@ -27,6 +26,7 @@ class Controller(object):
 
     def __init__(self, name, config, axes):
         self.__name = name
+        from ..config import StaticConfig
         self.__config = StaticConfig(config)
         self.__initialized_axis = dict()
         self._axes = dict()
