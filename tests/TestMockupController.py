@@ -191,6 +191,13 @@ class TestMockupController(unittest.TestCase):
         roby = emotion.get_axis("roby")
         self.assertEquals(roby.limits(), (None,None))
         self.assertRaises(ValueError, robz.move, -1001)
+
+    def test_limits3(self):
+        robz = emotion.get_axis("robz")
+        robz.move(0)
+	robz.limits(-10,10)
+        robz.position(10)
+        self.assertEquals(robz.limits(), (0, 20))
         
     def test_backlash2(self):
         roby = emotion.get_axis("roby")
