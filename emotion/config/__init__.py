@@ -370,11 +370,11 @@ def get_axis_setting(axis, setting_name):
     """
     if BACKEND == 'xml':
         try:
-            setting_value = axis.config.config_dict["settings"].get("setting_name")
+            setting_value = axis.config.config_dict["settings"].get(setting_name)
         except KeyError:
             raise RuntimeError
         else:
-            return setting_value
+            return setting_value["value"] if setting_value else None
     elif BACKEND == 'beacon':
         from .beacon_backend import get_axis_setting
         return get_axis_setting(axis, setting_name)
