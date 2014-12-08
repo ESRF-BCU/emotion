@@ -374,7 +374,7 @@ def get_axis_setting(axis, setting_name):
         except KeyError:
             raise RuntimeError
         else:
-            return setting_value["value"]
+            return setting_value
     elif BACKEND == 'beacon':
         from .beacon_backend import get_axis_setting
         return get_axis_setting(axis, setting_name)
