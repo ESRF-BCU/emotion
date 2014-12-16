@@ -22,12 +22,75 @@ class Emotion(PyTango.Device_4Impl):
         self.debug_stream("In __init__()")
         self.init_device()
 
+        self.sub_devices_list = list()
+
+        self.axis_dev_list = None
+
     def delete_device(self):
         self.debug_stream("In delete_device() of controller")
 
     def init_device(self):
         self.debug_stream("In init_device() of controller")
         self.get_device_properties(self.get_device_class())
+
+
+    def dev_state(self):
+        """ This command gets the device state (stored in its device_state
+        data member) and returns it to the caller.
+
+        :param : none
+        :type: PyTango.DevVoid
+        :return: Device state
+        :rtype: PyTango.CmdArgType.DevState """
+#        self.debug_stream("In Emotion dev_state()")
+        argout = PyTango.DevState.UNKNOWN
+
+        U = PyTango.Util.instance()
+        dev_list = U.get_device_list("*")
+        # [Emotion(id26/emotion/cyrtest),
+        # EmotionAxis_robd(id26/emotion_cyrtest/robd),
+        # EmotionAxis_robc(id26/emotion_cyrtest/robc),
+        # EmotionAxis_robb(id26/emotion_cyrtest/robb),
+        # EmotionAxis_roba(id26/emotion_cyrtest/roba),
+        # DServer(dserver/Emotion/cyrtest)]
+
+
+        # Create the list of EmotionAxis devices.
+        if self.axis_dev_list is None:
+            self.axis_dev_list = list()
+            for dev in dev_list:
+                dev_name =  dev.get_name()
+                if "emotion_" in dev_name:
+                    self.axis_dev_list.append(dev)
+
+        # build the Emotion State from states of EmotionAxis devices.
+        _emotion_working = True
+        _emotion_moving = False
+        for dev in self.axis_dev_list:
+            _axis_state = dev.get_state()
+
+            _axis_on = ( _axis_state == PyTango.DevState.ON )
+            _axis_moving = ( _axis_state == PyTango.DevState.MOVING )
+
+            _axis_working = _axis_on or _axis_moving
+            _emotion_working = _emotion_working and _axis_working
+            _emotion_moving = _emotion_moving or _axis_moving
+
+        if _emotion_moving:
+            self.set_state(PyTango.DevState.MOVING)
+        elif _emotion_working:
+            self.set_state(PyTango.DevState.ON)
+        else:
+            self.set_state(PyTango.DevState.FAULT)
+            self.set_status("FAULT ???")
+
+        # Builds the status for Emotion device from EmotionAxis status
+        E_status = ""
+        for dev in self.axis_dev_list:
+            E_status = E_status + dev.get_name() + ":" + dev.get_state().name + ";" + dev.get_status() + "\n" 
+        self.set_status(E_status)
+
+        return self.get_state()
 
 
 class EmotionClass(PyTango.DeviceClass):
@@ -109,7 +172,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         """
 
     def always_executed_hook(self):
-        self.debug_stream("In always_excuted_hook()")
+        #self.debug_stream("In always_excuted_hook()")
 
         # here instead of in init_device due to (Py?)Tango bug :
         # device does not really exist in init_device... (Cyril)
@@ -138,15 +201,17 @@ class EmotionAxis(PyTango.Device_4Impl):
         :type: PyTango.DevVoid
         :return: Device state
         :rtype: PyTango.CmdArgType.DevState """
-        self.debug_stream("In dev_state()")
+#        self.debug_stream("In AmotionAxis dev_state()")
         argout = PyTango.DevState.UNKNOWN
 
         try:
             _state = self.axis.state()
             if _state == emotion.axis.READY:
                 self.set_state(PyTango.DevState.ON)
+                self.set_status("ready")
             elif _state == emotion.axis.MOVING:
                 self.set_state(PyTango.DevState.MOVING)
+                self.set_status("moving")
             else:
                 self.set_state(PyTango.DevState.FAULT)
                 self.set_status("Emotion axis not READY nor MOVING...")
@@ -300,11 +365,11 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_Home_position_read = data
 
     def read_HardLimitLow(self, attr):
-        self.debug_stream("In read_HardLimitLow()")
+        #self.debug_stream("In read_HardLimitLow()")
         attr.set_value(self.attr_HardLimitLow_read)
 
     def read_HardLimitHigh(self, attr):
-        self.debug_stream("In read_HardLimitHigh()")
+        # self.debug_stream("In read_HardLimitHigh()")
         attr.set_value(self.attr_HardLimitHigh_read)
 
     def read_PresetPosition(self, attr):
@@ -818,7 +883,7 @@ def main():
 
                 for (fname, (t1, t2)) in _cmd_list:
                     # ugly verison by CG...
-                    # NOTE: MG has not benn involved in such crappy code (but it quite works :) )
+                    # NOTE: MG has not benn involved in such crappy code (but it works :) )
                     setattr(new_axis_class, fname, getattr(_axis, fname))
 
                     tin = types_conv_tab[t1]
@@ -877,6 +942,7 @@ def main():
         elog.exception(
             "Error in devices initialization")
         sys.exit(0)
+
 
     U.server_run()
 
