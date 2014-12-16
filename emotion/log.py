@@ -110,10 +110,12 @@ def debug(debug_msg):
     """Handle debug messages and add them calling information"""
     filename, lineno, func_name, _ = _caller()
 
-    # Reduces displayed path : starts with "emotion/".
+    # Reduces displayed path : keeps 2 last fields of filename.
     path = filename.split("/")
-    while path[0] != "emotion":
-        path = path[1:]
+    try:
+        path = path[-2:]
+    except:
+        path = path
 
     short_filename = "%s" % "/".join(path)
     short_filename = bcolors.BLUE + short_filename + bcolors.ENDC
