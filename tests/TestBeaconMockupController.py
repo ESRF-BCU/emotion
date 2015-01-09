@@ -14,39 +14,14 @@ sys.path.insert(
             "..")))
 
 import emotion
-import emotion.config
-emotion.config.BACKEND = "beacon" 
+import emotion.settings
 from emotion.axis import Axis
 from emotion import event
 from emotion import log
-
+from emotion.config import set_backend
+from beacon import settings
 #log.level(log.DEBUG)
 
-config_yaml = """
-controllers:
-    - 
-        class: mockup
-        name: test
-        host: mydummyhost1
-        port: 5000
-        axes:
-            - 
-                name: robz
-                velocity: 100
-                steps_per_unit: 10000
-                acceleration: 3
-    -
-        class: mockup
-        host: mydummyhost2
-        port: 5000
-        axes:
-            - 
-                name: roby
-                class: MockupAxis
-                velocity: 2500
-                backlash: 2
-                steps_per_unit: 10000
-"""
 
 # THIS IS FOR TESTING SPECIFIC FEATURES OF AXIS OBJECTS
 
@@ -79,8 +54,12 @@ sys.modules["MockupAxis"] = mockup_axis_module()
 class TestMockupController(unittest.TestCase):
 
     def setUp(self):
-        emotion.load_cfg_fromstring(config_yaml)
-       
+        set_backend("beacon")
+        emotion.config.clear_cfg()
+        emotion.settings.wait_settings_writing()
+        settings.HashSetting("axis.robz").clear()
+        settings.HashSetting("axis.roby").clear()
+
     def test_get_axis(self):
         robz = emotion.get_axis("robz")
         self.assertTrue(robz)
@@ -109,19 +88,39 @@ class TestMockupController(unittest.TestCase):
  
     def test_state_callback(self):
         e = gevent.event.AsyncResult()
-
-        def callback(state, old={}):
-            if old.get("state") == state:
-                return
+        old={"state":None}
+        def callback(state, old=old): #{}):
+            #if old.get("state") == state:
+            #    return
             old["state"] = state
-            e.set(state)
+            #e.set(state)
         robz = emotion.get_axis("robz")
         event.connect(robz, "state", callback)
         robz.rmove(10, wait=False)
-        self.assertEqual(e.get(), "MOVING")
-        e = gevent.event.AsyncResult()
-        self.assertEqual(e.get(), "READY")
+        while old["state"]=="MOVING":
+            time.sleep(0)
+        robz.state()
+        self.assertEqual(robz.state(), "READY")
+        #self.assertEqual(e.get(), "MOVING")
+        #self.assertEqual(robz.state(), "MOVING")
+        #e = gevent.event.AsyncResult()
+        #self.assertEqual(e.get(), "READY")
     
+    def test_position_callback(self):
+        storage={"last_pos":None, "last_dial_pos":None}
+        def callback(pos,old=storage):
+          old["last_pos"]=pos
+        def dial_callback(pos,old=storage):
+          old["last_dial_pos"]=pos
+        robz = emotion.get_axis("robz")
+        event.connect(robz, "position", callback)
+        event.connect(robz, "dial_position", dial_callback)
+        robz.position(1)
+        pos = robz.position()
+        robz.rmove(1)
+        self.assertEquals(storage["last_pos"], pos+1)
+        self.assertEquals(storage["last_dial_pos"], robz.user2dial(pos+1))
+      
     def test_rmove(self):
         robz = emotion.get_axis('robz')
         robz.move(0)
@@ -187,6 +186,20 @@ class TestMockupController(unittest.TestCase):
         roby.limits(-11, 10)
         self.assertRaises(ValueError, roby.move, -10)
 
+    def test_limits2(self):
+        robz = emotion.get_axis("robz")
+        self.assertEquals(robz.limits(), (-1000,1E9))
+        roby = emotion.get_axis("roby")
+        self.assertEquals(roby.limits(), (None,None))
+        self.assertRaises(ValueError, robz.move, -1001)
+
+    def test_limits3(self):
+        robz = emotion.get_axis("robz")
+        robz.move(0)
+	robz.limits(-10,10)
+        robz.position(10)
+        self.assertEquals(robz.limits(), (0, 20))
+        
     def test_backlash2(self):
         roby = emotion.get_axis("roby")
         self.assertEqual(roby.state(), "READY")
@@ -326,7 +339,6 @@ class TestMockupController(unittest.TestCase):
         self.assertEquals(robz.dial(), 2)
         self.assertEquals(robz.position(), 2)
 
- 
     def test_limit_search(self):
         robz = emotion.get_axis("robz")
         robz.hw_limit(1)
@@ -336,6 +348,6 @@ class TestMockupController(unittest.TestCase):
         robz.hw_limit(1, 10)
         self.assertEquals(robz.dial(), 10)
         self.assertEquals(robz.position(), 10)
- 
+
 if __name__ == '__main__':
     unittest.main()
