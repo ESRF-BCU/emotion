@@ -144,6 +144,7 @@ class EmotionAxis(PyTango.Device_4Impl):
 
         try:
             self.axis = TgGevent.get_proxy(emotion.get_axis, self._axis_name)
+            self.kontroler = TgGevent.get_proxy(self.axis.controller)
         except:
             self.set_status(traceback.format_exc())
 
@@ -492,9 +493,6 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.debug_stream("In GetInfo()")
         return self.axis.get_info()
 
-    def ReadConfig(self, argin):
-        return self.axis.config().get(argin)
-
     def RawWrite(self, argin):
         """ Sends a raw command to the axis. Be carefull!
 
@@ -503,7 +501,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         :return: None
         """
         self.debug_stream("In RawWrite()")
-        return self.axis.raw_write(argin)
+        return self.axis.controller.raw_write(sel.axis, argin)
 
     def RawWriteRead(self, argin):
         """ Sends a raw command to the axis and read the result.
@@ -514,7 +512,13 @@ class EmotionAxis(PyTango.Device_4Impl):
         :return: answer from controller.
         :rtype: PyTango.DevString """
         self.debug_stream("In RawWriteRead()")
-        return self.axis.raw_write_read(argin)
+
+        print "ARGIN=" , argin
+        print "K=" , self.kontroler
+        _ans = self.kontroler.raw_write_read(argin)
+
+        print "hans=" ,  _ans
+        return _ans
 
     def WaitMove(self):
         """ Waits end of last motion
@@ -525,6 +529,16 @@ class EmotionAxis(PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In WaitMove()")
         return self.axis.wait_move()
+
+    def ReadConfig(self, argin):
+        return self.axis.config().get(argin)
+
+    def SetGate(self, argin):
+        """
+        Activate or de-activate gate of this axis.
+        """
+        self.debug_stream("In SetGate(%s)" % argin)
+        return self.axis.set_gate(argin)
 
 
 class EmotionAxisClass(PyTango.DeviceClass):
@@ -576,7 +590,10 @@ class EmotionAxisClass(PyTango.DeviceClass):
          [PyTango.DevVoid, "none"]],
         'ReadConfig':
         [[PyTango.DevString, "Parameter name"],
-         [PyTango.DevString, "Configuration value"]]
+         [PyTango.DevString, "Configuration value"]],
+        'SetGate':
+        [[PyTango.DevLong, "state of the gate 0/1"],
+         [PyTango.DevVoid, ""]]
     }
 
     #    Attribute definitions
