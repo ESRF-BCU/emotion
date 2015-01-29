@@ -26,7 +26,7 @@ class Emotion(PyTango.Device_4Impl):
 
     def __init__(self, cl, name):
         PyTango.Device_4Impl.__init__(self, cl, name)
-        self.debug_stream("In __init__()")
+        self.debug_stream("In __init__() of controller")
         self.init_device()
 
         self.sub_devices_list = list()
@@ -130,8 +130,11 @@ class EmotionAxis(PyTango.Device_4Impl):
 
         self._axis_name = name.split('/')[-1]
         self._ds_name = name
-        self.debug_stream("In __init__()")
-        self.init_device()
+        self.debug_stream("In __init__() of axis")
+        try:
+            self.init_device()
+        except:
+            self.fatal_stream("CANNOT INIT DEVICE FOR AXIS")
 
     def delete_device(self):
         self.debug_stream("In delete_device() of axis")
@@ -153,6 +156,7 @@ class EmotionAxis(PyTango.Device_4Impl):
             self.axis = TgGevent.get_proxy(emotion.get_axis, self._axis_name)
             self.kontroler = TgGevent.get_proxy(self.axis.controller)
         except:
+            elog.error("unable to get kontroller or axis")
             self.set_status(traceback.format_exc())
 
         self.debug_stream("axis found : %s" % self._axis_name)
@@ -182,9 +186,9 @@ class EmotionAxis(PyTango.Device_4Impl):
         """
         Display get_info message
         """
+        # elog.info("    %s" % self.axis.get_info())
         elog.info("Emotion Axis " + bcolors.PINK + self._ds_name+ bcolors.ENDC + " initialized")
-        elog.info("    %s" % self.axis.get_info())
-        elog.info("-----------------------------")
+        elog.info("----------II-------------------")
 
     def always_executed_hook(self):
         # self.debug_stream("In always_excuted_hook()")
@@ -863,7 +867,7 @@ def main():
             elog.debug("Emotion.py - Found device : %s" % _device)
             _config_file = db.get_device_property(_device, "config_file")["config_file"][0]
             elog.info("Emotion.py - config file : %s" % _config_file)
-            elog.info("-----------------------------")
+            elog.info("-------------++----------------")
             first_run = False
         else:
             elog.error("[FIRST RUN] New server never started ? -> no database entry...", raise_exception=False)
@@ -947,7 +951,7 @@ def main():
                     U.create_device("EmotionAxis_%s" % axis_name, device_name)
 
                 except PyTango.DevFailed:
-                    # print traceback.format_exc()
+                    print traceback.format_exc()
                     pass
 
                 # If axis name is not already a tango alias,
@@ -955,8 +959,8 @@ def main():
                 try:
                     db.get_device_alias(axis_name)
                 except PyTango.DevFailed:
-                    elog.debug("Creating alias %s for device %s" % (axis_name, device_name))
                     db.put_device_alias(device_name, axis_name)
+                    elog.debug("Created alias %s for device %s" % (axis_name, device_name))
 
         else:
             # Do not raise exception to be able to use
