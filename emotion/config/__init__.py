@@ -4,7 +4,6 @@ import sys
 import os
 from .. import event
 from ..axis import Axis, AxisRef
-from ..group import Group
 try:
     from beacon.static import get_config as beacon_get_config
 except ImportError:
