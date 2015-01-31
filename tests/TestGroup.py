@@ -43,9 +43,9 @@ class TestGroup(unittest.TestCase):
 
     def setUp(self):
         emotion.load_cfg_fromstring(config_xml)
-        self.grp = emotion.Group([emotion.get_axis("robz"),
+        self.grp = emotion.Group(emotion.get_axis("robz"),
                                   emotion.get_axis("robz2"),
-                                  emotion.get_axis("roby")])
+                                  emotion.get_axis("roby"))
 
     def test_group_creation(self):
         self.assertTrue(self.grp)
