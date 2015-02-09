@@ -4,7 +4,7 @@ import serial
 from emotion import Controller
 from emotion import log as elog
 from emotion.controller import add_axis_method
-from emotion.axis import READY, MOVING
+from emotion.axis import AxisState
 
 
 """
@@ -66,9 +66,9 @@ class XXX(Controller):
     def state(self, axis):
         _ans = "whatever"
         if _ans == "moving":
-            return MOVING
+            return AxisState("MOVING")
         else:
-            return READY
+            return AxisState("READY")
 
     def prepare_move(self, motion):
         pass

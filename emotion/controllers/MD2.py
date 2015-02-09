@@ -5,7 +5,6 @@ protocol for communication.
 from emotion import Controller
 from emotion import log as elog
 from emotion.controller import add_axis_method
-from emotion.axis import READY, MOVING
 
 from emotion.comm.Exporter import ExporterChannel
 from emotion.comm.Exporter import ExporterCommand
@@ -22,7 +21,6 @@ class MD2(Controller):
         self.addr_dict["port"] = int(port)
         self.pos_attr_suffix = "Position"
         self.state_cmd = "getMotorState"
-        
 
     def initialize(self):
         """
@@ -32,7 +30,6 @@ class MD2(Controller):
 
     def initialize_axis(self, axis):
         axis.root_name = axis.config.get("root_name")
-
 
     def read_position(self, axis, measured=False):
         """

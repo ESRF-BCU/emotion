@@ -8,7 +8,7 @@ Emotion generic library
 """
 from emotion import Controller, log
 from emotion.controller import add_axis_method
-from emotion.axis import READY, MOVING, UNKNOWN
+from emotion.axis import AxisState
 
 """
 Extra modules
@@ -166,12 +166,12 @@ class IcePAP(Controller):
 
         # Convert status formats
         if(libicepap.status_ismoving(status)):
-            return MOVING
+            return AxisState("MOVING")
         if(libicepap.status_isready(status)):
-            return READY
+            return AxisState("READY")
 
         # Abnormal end
-        return UNKNOWN
+        return AxisState("FAULT")
 
     def prepare_move(self, motion):
         """

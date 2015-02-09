@@ -6,7 +6,7 @@ import time
 
 from emotion import Controller, log
 from emotion.controller import add_axis_method
-from emotion.axis import READY, MOVING
+from emotion.axis import AxisState
 from emotion.comm import tcp
 from emotion import event
 import gevent.lock
@@ -94,9 +94,9 @@ class NF8753(Controller):
             if line.startswith(axis.driver):
                 status_byte = int(line.split("=")[-1], 16)
                 if status_byte & 0x0000001:
-                    return MOVING
+                    return AxisState("MOVING")
                 else:
-                    return READY
+                    return AxisState("READY")
 
     def is_busy(self):
         return self.__busy

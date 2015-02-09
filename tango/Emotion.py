@@ -223,10 +223,11 @@ class EmotionAxis(PyTango.Device_4Impl):
 
         try:
             _state = self.axis.state()
-            if _state == emotion.axis.READY:
+
+            if _state.READY:
                 self.set_state(PyTango.DevState.ON)
                 self.set_status("ready")
-            elif _state == emotion.axis.MOVING:
+            elif _state.MOVING:
                 self.set_state(PyTango.DevState.MOVING)
                 self.set_status("moving")
             else:
@@ -436,7 +437,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.debug_stream("In On()")
         self.axis.on()
 
-        if self.axis.state() == "READY":
+        if self.axis.state().READY:
             self.set_state(PyTango.DevState.ON)
         else:
             self.set_state(PyTango.DevState.FAULT)
@@ -451,7 +452,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In Off()")
         self.axis.off()
-        if self.axis.state() == "OFF":
+        if self.axis.state.OFF:
             self.set_state(PyTango.DevState.OFF)
         else:
             self.set_state(PyTango.DevState.FAULT)
