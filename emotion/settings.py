@@ -31,6 +31,8 @@ def write_settings():
     finally:
         SETTINGS_WRITER_WATCHER.set()
 
+def NoConversion(x):
+    return x
 
 class ControllerAxisSettings:
 
@@ -41,7 +43,7 @@ class ControllerAxisSettings:
             "velocity": float,
             "position": float,
             "dial_position": float,
-            "state": str,
+            "state": NoConversion,
             "offset": float,
             "low_limit": float,
             "high_limit": float,
