@@ -28,12 +28,18 @@ install:
 	cp config/*.yml ${TEMPLATES_PATH}
 
         # tango server and startup-script
+        # oups : faire un test...
+	touch ${BLISSADM_PATH}/server/src/emotion_server
 	mv ${BLISSADM_PATH}/server/src/emotion_server ${BLISSADM_PATH}/server/src/emotion_server.bup
 	cp tango/emotion_server ${BLISSADM_PATH}/server/src/emotion_server
 
+        # oups : faire un test...
+	touch ${BLISSADM_PATH}/server/src/Emotion.py
 	mv ${BLISSADM_PATH}/server/src/Emotion.py ${BLISSADM_PATH}/server/src/Emotion.py.pub
 	cp tango/Emotion.py ${BLISSADM_PATH}/server/src/Emotion.py
 
+        # oups : faire un test...
+	touch ${BLISSADM_PATH}/server/src/TgGevent.py
 	mv ${BLISSADM_PATH}/server/src/TgGevent.py ${BLISSADM_PATH}/server/src/TgGevent.py.bup
 	cp tango/TgGevent.py ${BLISSADM_PATH}/server/src/TgGevent.py
 
