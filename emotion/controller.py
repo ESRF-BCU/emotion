@@ -9,8 +9,8 @@ from ..config import get_axis
 from .. import event
 
 
-def add_axis_method(
-        axis_object, method, name=None, args=[], types_info=(None, None)):
+def add_axis_method(axis_object, method, name=None, args=[], types_info=(None, None)):
+
     if name is None:
         name = method.im_func.func_name
 
