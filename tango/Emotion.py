@@ -3,24 +3,26 @@
 import emotion
 import emotion.axis
 import emotion.config
-import emotion.log
+import emotion.log as elog
+
 import PyTango
-import traceback
 import TgGevent
-import sys
+
 import os
+import sys
 import time
+import traceback
 import types
 
-import emotion.log as elog
 
 class bcolors:
     PINK = '\033[95m'
-    BLUE   = '\033[94m'
+    BLUE = '\033[94m'
     YELLOW = '\033[93m'
-    GREEN  = '\033[92m'
-    RED    = '\033[91m'
-    ENDC   = '\033[0m'
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    ENDC = '\033[0m'
+
 
 class Emotion(PyTango.Device_4Impl):
 
@@ -28,8 +30,6 @@ class Emotion(PyTango.Device_4Impl):
         PyTango.Device_4Impl.__init__(self, cl, name)
         self.debug_stream("In __init__() of controller")
         self.init_device()
-
-        self.sub_devices_list = list()
 
         self.axis_dev_list = None
 
@@ -39,7 +39,6 @@ class Emotion(PyTango.Device_4Impl):
     def init_device(self):
         self.debug_stream("In init_device() of controller")
         self.get_device_properties(self.get_device_class())
-
 
     def dev_state(self):
         """ This command gets the device state (stored in its device_state
@@ -61,12 +60,11 @@ class Emotion(PyTango.Device_4Impl):
         # EmotionAxis_roba(id26/emotion_cyrtest/roba),
         # DServer(dserver/Emotion/cyrtest)]
 
-
-        # Create the list of EmotionAxis devices.
+        # Creates the list of EmotionAxis devices.
         if self.axis_dev_list is None:
             self.axis_dev_list = list()
             for dev in dev_list:
-                dev_name =  dev.get_name()
+                dev_name = dev.get_name()
                 if "emotion_" in dev_name:
                     self.axis_dev_list.append(dev)
 
@@ -76,8 +74,8 @@ class Emotion(PyTango.Device_4Impl):
         for dev in self.axis_dev_list:
             _axis_state = dev.get_state()
 
-            _axis_on = ( _axis_state == PyTango.DevState.ON )
-            _axis_moving = ( _axis_state == PyTango.DevState.MOVING )
+            _axis_on = (_axis_state == PyTango.DevState.ON)
+            _axis_moving = (_axis_state == PyTango.DevState.MOVING)
 
             _axis_working = _axis_on or _axis_moving
             _emotion_working = _emotion_working and _axis_working
@@ -94,7 +92,7 @@ class Emotion(PyTango.Device_4Impl):
         # Builds the status for Emotion device from EmotionAxis status
         E_status = ""
         for dev in self.axis_dev_list:
-            E_status = E_status + dev.get_name() + ":" + dev.get_state().name + ";" + dev.get_status() + "\n" 
+            E_status = E_status + dev.get_name() + ":" + dev.get_state().name + ";" + dev.get_status() + "\n"
         self.set_status(E_status)
 
         return self.get_state()
@@ -183,6 +181,8 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_Home_side_read = False
         """
 
+        # elog.info("    %s" % self.axis.get_info())
+        elog.info(" Emotion.py Axis " + bcolors.PINK + self._ds_name + bcolors.ENDC + " initialized")
 
     def always_executed_hook(self):
 
@@ -380,7 +380,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_Home_position_read = data
 
     def read_HardLimitLow(self, attr):
-        #self.debug_stream("In read_HardLimitLow()")
+        # self.debug_stream("In read_HardLimitLow()")
         attr.set_value(self.attr_HardLimitLow_read)
 
     def read_HardLimitHigh(self, attr):
@@ -449,7 +449,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In Off()")
         self.axis.off()
-        if self.axis.state.OFF:
+        if self.axis.state().OFF:
             self.set_state(PyTango.DevState.OFF)
         else:
             self.set_state(PyTango.DevState.FAULT)
@@ -851,6 +851,9 @@ def main():
             elog.level(20)
             tango_log_level = 0
 
+        print ""
+        elog.info(" ---------------------= EMotion PyTango Device Server =----------------------------")
+
         # elog.info("tango log level=%d" % tango_log_level)
         # elog.debug("Emotion.py debug message")
         # elog.error("Emotion.py error message", raise_exception=False)
@@ -862,9 +865,11 @@ def main():
 
         if device_list is not None:
             _device = device_list[0]
-            elog.debug("Emotion.py - Found device : %s" % _device)
+            elog.info(" Emotion.py - Emotion device : %s" % _device)
             _config_file = db.get_device_property(_device, "config_file")["config_file"][0]
-            elog.info("Emotion.py - config file : %s" % _config_file)
+
+            elog.info(" Emotion.py - config file : " + bcolors.PINK + _config_file + bcolors.ENDC)
+
             first_run = False
         else:
             elog.error("[FIRST RUN] New server never started ? -> no database entry...", raise_exception=False)
@@ -1020,7 +1025,6 @@ def main():
         elog.exception(
             "Error in devices initialization")
         sys.exit(0)
-
 
     U.server_run()
 
