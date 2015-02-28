@@ -3,24 +3,26 @@
 import emotion
 import emotion.axis
 import emotion.config
-import emotion.log
+import emotion.log as elog
+
 import PyTango
-import traceback
 import TgGevent
-import sys
+
 import os
+import sys
 import time
+import traceback
 import types
 
-import emotion.log as elog
 
 class bcolors:
     PINK = '\033[95m'
-    BLUE   = '\033[94m'
+    BLUE = '\033[94m'
     YELLOW = '\033[93m'
-    GREEN  = '\033[92m'
-    RED    = '\033[91m'
-    ENDC   = '\033[0m'
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    ENDC = '\033[0m'
+
 
 class Emotion(PyTango.Device_4Impl):
 
@@ -28,8 +30,6 @@ class Emotion(PyTango.Device_4Impl):
         PyTango.Device_4Impl.__init__(self, cl, name)
         self.debug_stream("In __init__() of controller")
         self.init_device()
-
-        self.sub_devices_list = list()
 
         self.axis_dev_list = None
 
@@ -39,7 +39,6 @@ class Emotion(PyTango.Device_4Impl):
     def init_device(self):
         self.debug_stream("In init_device() of controller")
         self.get_device_properties(self.get_device_class())
-
 
     def dev_state(self):
         """ This command gets the device state (stored in its device_state
@@ -61,12 +60,11 @@ class Emotion(PyTango.Device_4Impl):
         # EmotionAxis_roba(id26/emotion_cyrtest/roba),
         # DServer(dserver/Emotion/cyrtest)]
 
-
-        # Create the list of EmotionAxis devices.
+        # Creates the list of EmotionAxis devices.
         if self.axis_dev_list is None:
             self.axis_dev_list = list()
             for dev in dev_list:
-                dev_name =  dev.get_name()
+                dev_name = dev.get_name()
                 if "emotion_" in dev_name:
                     self.axis_dev_list.append(dev)
 
@@ -76,8 +74,8 @@ class Emotion(PyTango.Device_4Impl):
         for dev in self.axis_dev_list:
             _axis_state = dev.get_state()
 
-            _axis_on = ( _axis_state == PyTango.DevState.ON )
-            _axis_moving = ( _axis_state == PyTango.DevState.MOVING )
+            _axis_on = (_axis_state == PyTango.DevState.ON)
+            _axis_moving = (_axis_state == PyTango.DevState.MOVING)
 
             _axis_working = _axis_on or _axis_moving
             _emotion_working = _emotion_working and _axis_working
@@ -94,7 +92,7 @@ class Emotion(PyTango.Device_4Impl):
         # Builds the status for Emotion device from EmotionAxis status
         E_status = ""
         for dev in self.axis_dev_list:
-            E_status = E_status + dev.get_name() + ":" + dev.get_state().name + ";" + dev.get_status() + "\n" 
+            E_status = E_status + dev.get_name() + ":" + dev.get_state().name + ";" + dev.get_status() + "\n"
         self.set_status(E_status)
 
         return self.get_state()
@@ -111,7 +109,7 @@ class EmotionClass(PyTango.DeviceClass):
         'config_file':
         [PyTango.DevString,
          "Path to the configuration file",
-         []],
+         ["/users/blissadm/local/userconf/emotion/XXX.xml"]],
     }
 
 
@@ -183,34 +181,29 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_Home_side_read = False
         """
 
-        """
-        Display get_info message
-        """
         # elog.info("    %s" % self.axis.get_info())
-        elog.info("Emotion Axis " + bcolors.PINK + self._ds_name+ bcolors.ENDC + " initialized")
-        elog.info("----------II-------------------")
+        elog.info(" Emotion.py Axis " + bcolors.PINK + self._ds_name + bcolors.ENDC + " initialized")
 
     def always_executed_hook(self):
-        # self.debug_stream("In always_excuted_hook()")
 
         # here instead of in init_device due to (Py?)Tango bug :
         # device does not really exist in init_device... (Cyril)
         if not self.once:
-            """
-            Initialises 'set values' of attributes.
-            """
+            try:
+                # Initialises "set values" of attributes.
 
-            print "Initialises 'set values' of attributes."
+                # Position
+                attr = self.get_device_attr().get_attr_by_name("Position")
+                attr.set_write_value(self.axis.position())
 
-            # Position
-            attr = self.get_device_attr().get_attr_by_name("Position")
-            attr.set_write_value(self.axis.position())
-
-            # Velocity
-            attr = self.get_device_attr().get_attr_by_name("Velocity")
-            attr.set_write_value(self.axis.velocity())
-            self.once = True
-
+                # Velocity
+                attr = self.get_device_attr().get_attr_by_name("Velocity")
+                attr.set_write_value(self.axis.velocity())
+            except:
+                elog.exception(
+                    "Cannot set one of the attributes write value")
+            finally:
+                self.once = True
 
     def dev_state(self):
         """ This command gets the device state (stored in its device_state
@@ -272,19 +265,20 @@ class EmotionAxis(PyTango.Device_4Impl):
             quality = PyTango.AttrQuality.ATTR_VALID
         _t = time.time()
 
+        _pos = self.axis.position()
+
         # updates value of "position" attribute.
-        attr.set_value(self.axis.position())
+        attr.set_value(_pos)
 
         # Updates "Write value" of Position attribute.
-        # why ???  write value must not change
-        # attr.set_write_value(self.axis.position())
+        attr.set_write_value(_pos)
 
         # ???
-        attr.set_value_date_quality(self.axis.position(), time.time(), quality)
+        attr.set_value_date_quality(_pos, time.time(), quality)
 
         _duration = time.time() - _t
         if _duration > 0.05:
-            print "{%s} read_Position : duration seems too long : %5.3g ms" % \
+            print "Emotion.py : {%s} read_Position : duration seems too long : %5.3g ms" % \
                 (self._ds_name, _duration * 1000)
 
     def write_Position(self, attr):
@@ -386,7 +380,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_Home_position_read = data
 
     def read_HardLimitLow(self, attr):
-        #self.debug_stream("In read_HardLimitLow()")
+        # self.debug_stream("In read_HardLimitLow()")
         attr.set_value(self.attr_HardLimitLow_read)
 
     def read_HardLimitHigh(self, attr):
@@ -455,7 +449,7 @@ class EmotionAxis(PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In Off()")
         self.axis.off()
-        if self.axis.state.OFF:
+        if self.axis.state().OFF:
             self.set_state(PyTango.DevState.OFF)
         else:
             self.set_state(PyTango.DevState.FAULT)
@@ -857,6 +851,9 @@ def main():
             elog.level(20)
             tango_log_level = 0
 
+        print ""
+        elog.info(" ---------------------= EMotion PyTango Device Server =----------------------------")
+
         # elog.info("tango log level=%d" % tango_log_level)
         # elog.debug("Emotion.py debug message")
         # elog.error("Emotion.py error message", raise_exception=False)
@@ -868,10 +865,11 @@ def main():
 
         if device_list is not None:
             _device = device_list[0]
-            elog.debug("Emotion.py - Found device : %s" % _device)
+            elog.info(" Emotion.py - Emotion device : %s" % _device)
             _config_file = db.get_device_property(_device, "config_file")["config_file"][0]
-            elog.info("Emotion.py - config file : %s" % _config_file)
-            elog.info("-------------++----------------")
+
+            elog.info(" Emotion.py - config file : " + bcolors.PINK + _config_file + bcolors.ENDC)
+
             first_run = False
         else:
             elog.error("[FIRST RUN] New server never started ? -> no database entry...", raise_exception=False)
@@ -901,8 +899,6 @@ def main():
                 new_axis_class_class = types.ClassType("EmotionAxisClass_%s" % axis_name, (EmotionAxisClass,), {})
                 new_axis_class = types.ClassType("EmotionAxis_%s" % axis_name, (EmotionAxis,), {})
 
-                elog.debug("================ axis %s =========" % axis_name)
-
                 types_conv_tab = {
                     None: PyTango.DevVoid,
                     str: PyTango.DevString,
@@ -910,6 +906,9 @@ def main():
                     float: PyTango.DevDouble,
                     bool: PyTango.DevBoolean}
 
+                """
+                CUSTOM COMMANDS
+                """
                 # Search and adds custom commands.
                 _cmd_list = _axis.custom_methods_list()
                 elog.debug("'%s' custom commands:" % axis_name)
@@ -917,8 +916,6 @@ def main():
                 new_axis_class_class.cmd_list = dict(EmotionAxisClass.cmd_list)
 
                 for (fname, (t1, t2)) in _cmd_list:
-                    # ugly verison by CG...
-                    # NOTE: MG has not benn involved in such crappy code (but it works :) )
                     setattr(new_axis_class, fname, getattr(_axis, fname))
 
                     tin = types_conv_tab[t1]
@@ -928,6 +925,55 @@ def main():
 
                     elog.debug("   %s (in: %s, %s) (out: %s, %s)" % (fname, t1, tin, t2, tout))
 
+                """
+                SETTINGS AS ATTRIBUTES.
+                """
+                elog.debug(" Emotion.py ----------------  SETTINGS  -------------------------")
+
+                new_axis_class_class.attr_list = dict(EmotionAxisClass.attr_list)
+
+                for setting_name in _axis.settings():
+                    if setting_name in ["velocity", "position", "dial_position", "state",
+                                        "offset", "low_limit", "high_limit", "acceleration"]:
+                        elog.debug(" Emotion.py -- std SETTING %s " % (setting_name))
+                    else:
+                        _attr_name = setting_name
+                        _setting_type = _axis.controller().axis_settings.convert_funcs[_attr_name]
+                        _attr_type = types_conv_tab[_setting_type]
+                        elog.debug(" Emotion.py -- adds SETTING %s as %s attribute" % (setting_name, _attr_type))
+
+                        # Updates Attributes list.
+                        new_axis_class_class.attr_list.update({_attr_name:
+                                                               [[_attr_type,
+                                                                 PyTango._PyTango.AttrDataFormat.SCALAR,
+                                                                 PyTango._PyTango.AttrWriteType.READ_WRITE], {
+                            'Display level': PyTango._PyTango.DispLevel.OPERATOR,
+                            'format': '%10.3f',
+                            'description': '%s : u 2' % _attr_name,
+                            'unit': 'user units/s^2',
+                            'label': _attr_name
+                            }]})
+
+                        # Creates functions to read and write settings.
+                        def read_custattr(self, attr, _axis=_axis, _attr_name=_attr_name):
+                            _val = _axis.get_setting(_attr_name)
+                            print "in read_%s %s (%s)" % (_attr_name, _val, _axis.name())
+                            attr.set_value(_val)
+                        new_read_attr_method = types.MethodType(read_custattr, new_axis_class,
+                                                                new_axis_class.__class__)
+                        setattr(new_axis_class, "read_%s" % _attr_name, new_read_attr_method)
+
+                        def write_custattr(self, attr, _axis=_axis, _attr_name=_attr_name):
+                            data = attr.get_write_value()
+                            print "in write_%s %s (%s)" % (_attr_name, data, _axis.name())
+                            _axis.set_setting(_attr_name, data)
+
+                        new_write_attr_method = types.MethodType(write_custattr, new_axis_class,
+                                                                 new_axis_class.__class__)
+                        setattr(new_axis_class, "write_%s" % _attr_name, new_write_attr_method)
+
+                # End of custom command and settings
+                # Adds new Axis specific class.
                 py.add_class(new_axis_class_class, new_axis_class)
 
         U.server_init()
@@ -978,7 +1024,6 @@ def main():
         elog.exception(
             "Error in devices initialization")
         sys.exit(0)
-
 
     U.server_run()
 
