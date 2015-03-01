@@ -1,13 +1,11 @@
 __package__ = 'emotion.axis'
 
-import emotion
-from emotion import log as elog
+from .. import log as elog
 from ..task_utils import *
 from ..settings import AxisSettings
 from .. import event
 import time
 import gevent
-
 import re
 import types
 
