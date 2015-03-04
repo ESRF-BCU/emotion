@@ -10,7 +10,7 @@ sys.path.insert(
             "..")))
 
 import emotion
-from emotion.axis import Axis, READY
+from emotion.axis import Axis
 #from emotion import log
 #log.level(log.DEBUG)
 
@@ -154,8 +154,8 @@ class TestSlits(unittest.TestCase):
         s1hg.move(.5)
         hgap = s1hg.position()
         s1ho.move(2)
-        self.assertEquals(s1b.state(), READY)
-        self.assertEquals(s1f.state(), READY)
+        self.assertEquals(s1b.state(), "READY")
+        self.assertEquals(s1f.state(), "READY")
         self.assertAlmostEquals(hgap, s1hg.position(), places=4)
         self.assertEquals(s1b.position(), 2 + (hgap / 2.0))
         self.assertEquals(s1f.position(), (hgap / 2.0) - 2)
