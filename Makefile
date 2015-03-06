@@ -47,6 +47,7 @@ install:
 	cp tango/TgGevent.py ${BLISSADM_PATH}/server/src/TgGevent.py
 
         ####  Spec macros
+	touch ${BLISSADM_PATH}/spec/macros/tango_mot.mac
 	mv ${BLISSADM_PATH}/spec/macros/tango_mot.mac ${BLISSADM_PATH}/spec/macros/tango_mot.mac.bup
 	cp spec/tango_mot.mac ${BLISSADM_PATH}/spec/macros/tango_mot.mac
 
