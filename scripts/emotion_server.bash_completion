@@ -10,7 +10,10 @@ _emotion_server()
 
 . blissrc
 
-PERS_NAMES=$(mysql --silent -u blissadm -pspec92 -h piano -e"use tango; select member from device where class='Emotion' ;")
+# TANGO_HOST
+TH=???
+
+PERS_NAMES=$(mysql --silent -u blissadm -pspec92 -h $TH -e"use tango; select member from device where class='Emotion' ;")
 
 # PERS_NAMES=$(exec python /users/blissadm/python/bliss_modules/emotion/tango/emotion_server -? 2>&1 | grep -v 'instance_name' | grep -v 'Instance')
 
