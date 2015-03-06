@@ -33,6 +33,7 @@ install:
 	cp config/*.yml ${TEMPLATES_PATH}
 
         ####  tango server and startup-script
+	mkdir -p ${BLISSADM_PATH}/server/src
 	touch ${BLISSADM_PATH}/server/src/emotion_server
 	mv ${BLISSADM_PATH}/server/src/emotion_server ${BLISSADM_PATH}/server/src/emotion_server.bup
 	cp tango/emotion_server ${BLISSADM_PATH}/server/src/emotion_server
