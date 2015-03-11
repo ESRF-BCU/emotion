@@ -41,17 +41,24 @@ PreInstall() {
 
     cd /tmp
     rm -rf /tmp/emotion/
-    $GIT clone git@gitlab.esrf.fr:emotion/emotion.git
+
+    echo "unset http_proxy to allow http cloning"
+    unset http_proxy
+    $GIT clone http://gitlab.esrf.fr/emotion/emotion.git
+
+    # $GIT clone git@gitlab.esrf.fr:emotion/emotion.git
+
     cd emotion
 
     #  "a new hope" tag
     # $GIT checkout 1.5
 
-    # "Python Strikes Back" tag
+    echo "get Python Strikes Back 1.6 tag"
     $GIT checkout 1.6
 
     # will install in /users/blissadm/python/bliss_modules/emotion/
     # python setup.py install
+    echo "make install..."
     make install
 
 }
