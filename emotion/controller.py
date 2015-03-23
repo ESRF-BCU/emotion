@@ -186,7 +186,7 @@ class Controller(object):
     def limit_search(self, axis, limit):
         raise NotImplementedError
 
-    def read_position(self, axis, measured=False):
+    def read_position(self, axis):
         raise NotImplementedError
 
     def set_position(self, axis, new_position):
@@ -303,7 +303,7 @@ class CalcController(Controller):
     def stop(self, axis):
         self._reals_group.stop()
 
-    def read_position(self, axis, measured=False):
+    def read_position(self, axis):
         return axis.settings.get("dial_position")
 
     def state(self, axis, new_state=None):
