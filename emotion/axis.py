@@ -71,8 +71,14 @@ class Axis(object):
         return self.config.get("steps_per_unit", float, 1)
 
     @property
-    def encoder_steps_per_unit(self):
-        return self.config.get("encoder_steps_per_unit", float, self.steps_per_unit)
+    def encoder(self):
+        try:
+             encoder_name = self.config.get("encoder")
+        except KeyError:
+             return None
+        else:
+            from ..config import get_encoder 
+            return get_encoder(encoder_name)
 
     @property
     def custom_methods_list(self):
@@ -118,12 +124,15 @@ class Axis(object):
 
     def measured_position(self):
         """
-        Returns a value in user units.
+        Returns the encoder value in user units.
         """
         return self.dial2user(self.dial_measured_position())
 
     def dial_measured_position(self):
-        return self.__controller.read_position(self, measured=True) / self.encoder_steps_per_unit
+        """
+        Returns the dial encoder position.
+        """
+        return self.__controller.read_encoder(self.encoder) / self.encoder.steps_per_unit
 
     def dial(self, new_dial=None):
         """
@@ -425,6 +434,12 @@ class Axis(object):
         if wait:
             self.wait_move()
 
+    def _do_encoder_reading(self):
+        enc_dial = self.encoder.read()
+        curr_pos = self.user2dial(self._position())
+        if abs(curr_pos - enc_dial) > self.encoder.tolerance:
+            raise RuntimeError("'%s` didn't reach final position." % self.name)
+
     @task
     def _do_move(self, motion, wait=True):
         if motion is None:
@@ -435,19 +450,23 @@ class Axis(object):
 
             self._handle_move(motion)
 
+        if self.encoder is not None:
+            self._do_encoder_reading()
+
     def rmove(self, user_delta_pos, wait=True):
         return self.move(user_delta_pos, wait, relative=True)
 
     def wait_move(self):
         try:
             self.__move_done.wait()
-        except:
+        except KeyboardInterrupt:
             self.stop()
             raise
-        try:
-            return self.__move_task.get()
-        except (KeyboardInterrupt, gevent.GreenletExit):
-            pass
+        else:
+            try:
+                return self.__move_task.get()
+            except (KeyboardInterrupt, gevent.GreenletExit):
+                pass
 
     def _do_stop(self):
         self.__set_position = None
@@ -465,7 +484,8 @@ class Axis(object):
                 break
             self._update_settings(state)
             time.sleep(0.02)
-        
+        if self.encoder is not None:
+            self._do_encoder_reading()
 
     def stop(self, exception=gevent.GreenletExit, wait=True):
         if self.is_moving:
