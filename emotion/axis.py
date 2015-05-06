@@ -31,7 +31,6 @@ class Axis(object):
         from ..config import StaticConfig
         self.__config = StaticConfig(config)
         self.__settings = AxisSettings(self)
-        self.__settings.set("offset", 0)
         self.__move_done = gevent.event.Event()
         self.__move_done.set()
         self.__custom_methods_list = list()
@@ -60,7 +59,11 @@ class Axis(object):
 
     @property
     def offset(self):
-        return self.__settings.get("offset")
+        offset = self.__settings.get("offset")
+        if offset is None:
+            offset = 0
+            self.__settings.set('offset', 0)
+        return offset 
 
     @property
     def sign(self):
