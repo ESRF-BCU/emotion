@@ -77,8 +77,6 @@ class ControllerAxisSettings:
     def load_from_config(self, axis):
         from .. import config
         for setting_name in self.setting_names:
-            if setting_name in ("state", "position"):
-                continue
             try:
                 # Reads setting from XML file or redis DB.
                 setting_value = config.get_axis_setting(axis, setting_name)
