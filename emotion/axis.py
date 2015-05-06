@@ -122,9 +122,8 @@ class Axis(object):
         state = self.__controller.state(self)
         self.settings.set("state", state)
 
-    def set_position(self):
+    def _set_position(self):
         return self.__set_position if self.__set_position is not None else self.position()
-
 
     def measured_position(self):
         """
@@ -334,7 +333,7 @@ class Axis(object):
 
     def prepare_move(self, user_target_pos, relative=False):
         if relative:
-            user_initial_pos = self.set_position()
+            user_initial_pos = self._set_position()
             user_target_pos += user_initial_pos
         else:
             user_initial_pos = self.position()
