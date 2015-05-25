@@ -168,14 +168,14 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_StepSize_read = 0.0
         self.attr_Steps_per_unit_read = 0.0
         self.attr_Acceleration_read = 1.0
+        self.attr_HardLimitLow_read = False
+        self.attr_HardLimitHigh_read = False
 
         """
         self.attr_Steps_read = 0
         self.attr_Position_read = 0.0
         self.attr_Measured_Position_read = 0.0
         self.attr_Backlash_read = 0.0
-        self.attr_HardLimitLow_read = False
-        self.attr_HardLimitHigh_read = False
         self.attr_PresetPosition_read = 0.0
         self.attr_FirstVelocity_read = 0.0
         self.attr_Home_side_read = False
@@ -226,6 +226,9 @@ class EmotionAxis(PyTango.Device_4Impl):
                 self.set_state(PyTango.DevState.FAULT)
 
             self.set_status(_state.current_states())
+
+            self.attr_HardLimitLow_read = _state.LIMNEG
+            self.attr_HardLimitHigh_read = _state.LIMPOS
 
         except:
             self.set_state(PyTango.DevState.FAULT)
@@ -360,11 +363,15 @@ class EmotionAxis(PyTango.Device_4Impl):
         self.attr_Home_position_read = data
 
     def read_HardLimitLow(self, attr):
-        # self.debug_stream("In read_HardLimitLow()")
+        self.debug_stream("In read_HardLimitLow()")
+        # Update state and return cached value.
+        self.dev_state()
         attr.set_value(self.attr_HardLimitLow_read)
 
     def read_HardLimitHigh(self, attr):
-        # self.debug_stream("In read_HardLimitHigh()")
+        self.debug_stream("In read_HardLimitHigh()")
+        # Update state and return cached value.
+        self.dev_state()
         attr.set_value(self.attr_HardLimitHigh_read)
 
     def read_PresetPosition(self, attr):
