@@ -301,7 +301,7 @@ class EmotionAxis(PyTango.Device_4Impl):
             else:
                 return True
         except:
-            print traceback.format_exc()
+            sys.excepthook(*sys.exc_info())
 
     def read_Measured_Position(self, attr):
         self.debug_stream("In read_Measured_Position()")
@@ -883,16 +883,22 @@ def main():
         # py.add_class(EmotionAxisClass, EmotionAxis)
 
         if not first_run:
-            try:
-                TgGevent.execute(emotion.load_cfg, _config_file)
-            except:
-                elog.error("error (not present or syntax error?) in reading config file : %s" %
-                           _config_file, raise_exception=False)
-                print traceback.format_exc()
-                sys.exit(-1)
-
-            # Get axis names defined in config file.
-            axis_names = emotion.config.axis_names_list()
+            if _config_file:
+                try:
+                    TgGevent.execute(emotion.load_cfg, _config_file)
+                except:
+                    elog.error("error (not present or syntax error?) in reading config file : %s" %
+                               _config_file, raise_exception=False)
+                    sys.excepthook(*sys.exc_info())
+                    sys.exit(-1)
+                else:
+                    # Get axis names defined in config file.
+                    axis_names = emotion.config.axis_names_list()
+            else:
+                # Get axis names from property (= use beacon to get axis objects)
+                emotion.config.BACKEND = "beacon"
+                axis_names = db.get_device_property(_device, "axes")["axes"][0].split()
+     
             elog.debug("axis names list : %s" % axis_names)
 
             for axis_name in axis_names:
