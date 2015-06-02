@@ -1,10 +1,12 @@
 from emotion import Controller
 from emotion import log as elog
 from emotion.axis import AxisState
+from emotion import event
 from emotion.controller import add_axis_method
 import math
 import time
 import random
+import functools
 
 """
 mockup.py : a mockup controller for emotion.
@@ -75,11 +77,18 @@ class Mockup(Controller):
     Axes initialization actions.
     """
     def initialize_axis(self, axis):
+        def set_pos(move_done, axis=axis):
+            if move_done:
+                self.set_position(axis, axis.dial()*axis.steps_per_unit)
+
         self._axis_moves[axis] = {
             "measured_simul": False,
             "measured_noise": 0.0,
             "end_t": 0,
-            "end_pos": 0}
+            "end_pos": 0,
+            "move_done_cb": set_pos }
+
+        event.connect(axis, "move_done", set_pos)
 
         # this is to test axis are initialized only once
         axis.settings.set('init_count', axis.settings.get('init_count') + 1)
