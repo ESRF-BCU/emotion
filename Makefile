@@ -1,5 +1,5 @@
 #
-# E-Motion installation.
+# E-Motion installation at ESRF.
 #
 
 # Installation directories :
@@ -7,7 +7,6 @@
 # /users/blissadm/local/userconf/emotion/
 # /users/blissadm/local/userconf/emotion/templates/
 # /users/blissadm/server/src/emotion_server
-
 
 
 BLISSADM_PATH=/users/blissadm
@@ -23,8 +22,14 @@ DEV_PATH=${PWD}
 # "Distribution" installation.
 # Copy of files from current git directory.
 install:
+
+        ####  ESRF install only...
+	cp -f setup.cfg.esrf setup.cfg
+
         ####  install of the py module.
 	python setup.py install
+
+	rm setup.cfg
 
         ####  config dir and template files.
 	mkdir -p ${TEMPLATES_PATH}
