@@ -1,7 +1,7 @@
 emotion: ESRF Motion control library
 ====================================
 
-Emotion is a Python package developed at the ESRF within the Beamline
+EMotion is a Python package developed at the ESRF within the Beamline
 Control Unit by Matias Guijarro, Cyril Guilloud and Manuel Perez.
 
 Emotion provides uniform Python objects and a full set of standard
