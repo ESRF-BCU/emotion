@@ -6,6 +6,7 @@
       <channel value="1"/>
       <!-- degrees per second -->
       <velocity value="30"/>
+      <acceleration value="1" />
     </axis>
   </controller>
 </config>
