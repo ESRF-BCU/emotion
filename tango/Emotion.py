@@ -137,12 +137,12 @@ class EmotionClass(PyTango.DeviceClass):
     device_property_list = {
         'config_file':
         [PyTango.DevString,
-         "( Deprecated ? ) Path to the XML configuration file (XML only)",
-         ["/users/blissadm/local/userconf/emotion/XXX.xml"]],
+         "( Deprecated ? ) Path to the XML configuration file\n  ---->XML only \n --->let empty if you want to use Beacon) ",
+        [["/users/blissadm/local/userconf/emotion/XXX.xml"]]],
         'axes':
         [PyTango.DevString,
-         "List of axes to instanciate (BEACON only)",
-         ["mot1 mot2 mot3"]],
+         "List of axes to instanciate \n ---> BEACON only \n let empty to use XML config file (only if you know what you are doing...).",
+         [["mot1 mot2 mot3"]]],
     }
 
     #    Command definitions
