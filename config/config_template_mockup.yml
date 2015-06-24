@@ -9,5 +9,8 @@ controllers:
                 name: m0
                 velocity: 2500
                 steps_per_unit: 10000
-                acceleration: 3
+                acceleration: 3.1
+                tolerance : 1.1
+                offset : 5.1
+                backlash : 2.1
 
