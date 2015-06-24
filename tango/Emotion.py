@@ -239,7 +239,7 @@ class EmotionAxis(PyTango.Device_4Impl):
                 # Position
                 attr = self.get_device_attr().get_attr_by_name("Position")
                 attr.set_write_value(self.axis.position())
-                
+
                 # Velocity
                 attr = self.get_device_attr().get_attr_by_name("Velocity")
                 attr.set_write_value(self.axis.velocity())
@@ -248,6 +248,7 @@ class EmotionAxis(PyTango.Device_4Impl):
                     "Cannot set one of the attributes write value")
             finally:
                 self.once = True
+
 
     def dev_state(self):
         """ This command gets the device state (stored in its device_state
@@ -392,11 +393,34 @@ class EmotionAxis(PyTango.Device_4Impl):
 
     def read_Backlash(self, attr):
         self.debug_stream("In read_Backlash()")
+        self.attr_Backlash_read = self.axis.backlash()
         attr.set_value(self.attr_Backlash_read)
 
-    def write_Backlash(self, attr):
-        self.debug_stream("In write_Backlash()")
-        # data = attr.get_write_value()
+#    def write_Backlash(self, attr):
+#        self.debug_stream("In write_Backlash()")
+#        data = attr.get_write_value()
+#        self.debug_stream("write backlash %s" % data)
+
+    def read_Offset(self, attr):
+        self.debug_stream("In read_Offset()")
+        self.attr_Offset_read = self.axis.offset()
+        attr.set_value(self.attr_Offset_read)
+
+#    def write_Offset(self, attr):
+#        self.debug_stream("In write_Offset()")
+#        data = attr.get_write_value()
+#        self.debug_stream("write offset %s" % data)
+#        self.axis.offset(data)
+
+    def read_Tolerance(self, attr):
+        self.debug_stream("In read_Tolerance()")
+        self.attr_Tolerance_read = self.axis.tolerance()
+        attr.set_value(self.attr_Tolerance_read)
+
+    def write_Tolerance(self, attr):
+        self.debug_stream("In write_Tolerance()")
+        data = attr.get_write_value()
+        self.debug_stream("write tolerance %s" % data)
 
     def read_Home_position(self, attr):
         self.debug_stream("In read_Home_position()")
@@ -759,13 +783,35 @@ class EmotionAxisClass(PyTango.DeviceClass):
         'Backlash':
         [[PyTango.DevDouble,
           PyTango.SCALAR,
-          PyTango.READ_WRITE],
+          PyTango.READ],
          {
              'label': "Backlash",
              'unit': "uu",
              'format': "%5.3f",
              'description': "Backlash to be applied to each motor movement",
-             'Display level': PyTango.DispLevel.EXPERT,
+             #'Display level': PyTango.DispLevel.EXPERT,
+        }],
+        'Offset':
+        [[PyTango.DevDouble,
+          PyTango.SCALAR,
+          PyTango.READ],
+         {
+             'label': "Offset",
+             'unit': "uu",
+             'format': "%7.5f",
+             'description': "Offset between dial and user",
+             #'Display level': PyTango.DispLevel.EXPERT,
+        }],
+        'Tolerance':
+        [[PyTango.DevDouble,
+          PyTango.SCALAR,
+          PyTango.READ],
+         {
+             'label': "Tolerance",
+             'unit': "uu",
+             'format': "%7.5f",
+             'description': "Tolerance between dial and user",
+             #'Display level': PyTango.DispLevel.EXPERT,
         }],
         'Home_position':
         [[PyTango.DevDouble,
