@@ -227,6 +227,7 @@ class EmotionAxis(PyTango.Device_4Impl):
 
         self.attr_trajpar_read = [[0.0]]
 
+        # To force update of state and status.
         self.dev_state()
 
         # elog.info("    %s" % self.axis.get_info())
@@ -288,6 +289,14 @@ class EmotionAxis(PyTango.Device_4Impl):
 
         # print "dev_state %s" % self.get_state()
         return self.get_state()
+
+    def dev_status(self):
+        # update current state AND status
+        self.dev_state()
+
+        # get the updated status as a string
+        self._status = self.get_status()
+        return self._status
 
     def read_Steps_per_unit(self, attr):
         self.debug_stream("In read_Steps_per_unit()")
