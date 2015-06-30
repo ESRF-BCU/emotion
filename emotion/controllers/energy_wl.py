@@ -1,10 +1,15 @@
+
 """
 Energy/wavelength Emotion controller
+Calculate energy [keV] / wavelength [Angstrom] from angle or
+angle [deg] from energy [keV], using the Bragg´s law
 
 monoang: alias for the real monochromator motor
 energy: energy calculated axis alias
 wavelength: wavelength calculated axis alias
 dspace: monochromator crystal d-spacing
+
+Antonia Beteva ESRF BCU
 """
 
 from emotion import event, CalcController
