@@ -1,0 +1,21 @@
+<config>
+    <controller class="IcePAP" name="test">
+        <host value="icebcu2" />
+        <libdebug value="1" />
+        <axis name="mymot1">
+            <address value="1" />
+            <steps_per_unit value="200" />
+            <backlash value="0.01" />
+            <velocity value="20" />  // unit is mm/sec
+            <accleration value="80" />  // unit is mm/sec2
+            <encoder_steps_per_unit value="1000" />
+        <settings><velocity value="20.0" /></settings></axis>
+        <axis name="mymot2">
+            <address value="2" />
+            <steps_per_unit value="200" />
+            <backlash value="0.01" />
+            <velocity value="20" />   // unit is mm/sec
+            <acceleration value="80" />   // unit is mm/sec2
+        <settings><acceleration value="80.0" /></settings></axis>
+    </controller>
+</config>
