@@ -630,6 +630,18 @@ class EmotionAxis(PyTango.Device_4Impl):
     def ReadConfig(self, argin):
         return self.axis.config().get(argin)
 
+    def ApplyConfig(self):
+        """
+        Take config values and applying them to the axis
+        """
+        self.axis.apply_config()
+
+    def SettingsToConfig(self):
+        """
+        Applies current settings to config
+        """
+        self.axis.settings_to_config()
+
     def SetGate(self, argin):
         """
         Activate or de-activate gate of this axis.
@@ -716,6 +728,12 @@ class EmotionAxisClass(PyTango.DeviceClass):
         'ReadConfig':
         [[PyTango.DevString, "Parameter name"],
          [PyTango.DevString, "Configuration value"]],
+        'ApplyConfig':
+        [[PyTango.DevVoid, "none"],
+         [PyTango.DevVoid, "none"]],
+        'SettingsToConfig':
+        [[PyTango.DevVoid, "none"],
+         [PyTango.DevVoid, "none"]],
         'SetGate':
         [[PyTango.DevLong, "state of the gate 0/1"],
          [PyTango.DevVoid, ""]],
